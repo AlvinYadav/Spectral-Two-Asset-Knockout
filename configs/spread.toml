@@ -1,0 +1,32 @@
+[financial]
+S1_0   = 100.0
+S2_0   = 100.0
+sigma1 = 0.25
+sigma2 = 0.35
+rho    = 0.60
+r      = 0.05
+T      = 1.0
+
+[spread]
+K_spread = 10.0   # Spread strike: payoff = max(w₁S₁ − w₂S₂ − K, 0)
+w1       = 1.0
+w2       = 1.0
+x1_lo    = -1.5   # Truncation domain in log-return space
+x1_hi    =  1.5
+x2_lo    = -1.5
+x2_hi    =  1.5
+
+[spectral]
+N_modes  = 25
+N_quad   = 120
+smooth   = true
+
+[monte_carlo]
+enabled  = true
+n_paths  = 500_000
+seed     = 42
+
+[fdm]
+enabled  = true
+N_grid   = 200
+N_time   = 500

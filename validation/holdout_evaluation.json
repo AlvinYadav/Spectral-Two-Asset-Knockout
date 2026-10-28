@@ -1,0 +1,255 @@
+{
+  "evaluated_at": "Level 2V, V.10",
+  "configs": {
+    "holdout_ellipse": {
+      "config": "holdout_ellipse",
+      "gates": [
+        {
+          "gate": "basis_condG_below_1e4",
+          "passed": true,
+          "detail": "cond(G)=6.77e+02 (gram_dedupe cond_warn analogue)"
+        },
+        {
+          "gate": "price_vs_mc_3sem",
+          "passed": false,
+          "detail": "spec=37.97773 MC=37.10702+-0.01868 (46.60 SEM)"
+        },
+        {
+          "gate": "price_vs_fdm_3x_trunc",
+          "passed": false,
+          "detail": "spec-FDM gap 0.86660 vs 3x Richardson trunc 0.00098 (floor 0.02)"
+        },
+        {
+          "gate": "delta1_vs_mc_crn_30pct_documented",
+          "passed": true,
+          "detail": "spec=0.47130 MC-CRN=0.44619+-0.00406 rel=5.6% (6.2 SEM) [documented 30% sanity bound]"
+        },
+        {
+          "gate": "delta2_vs_mc_crn_30pct_documented",
+          "passed": true,
+          "detail": "spec=1.09163 MC-CRN=1.06682+-0.00312 rel=2.3% (8.0 SEM) [documented 30% sanity bound]"
+        },
+        {
+          "gate": "pde_residual_pointwise",
+          "passed": true,
+          "detail": "rel residual 1.89e-07 (pointwise-exact basis convention)"
+        },
+        {
+          "gate": "perturbation_beats_baseline_ci",
+          "passed": true,
+          "detail": "eta=0.265 R=1.82 [1.79,1.87] (pass = CI lower bound > 1)"
+        }
+      ],
+      "basis_health": {
+        "ledger": {
+          "basis": "MathieuBasis",
+          "candidates": 52,
+          "constructed": 52,
+          "dedup_dropped": [
+            [
+              {
+                "n": 6,
+                "m": 2,
+                "parity": "odd",
+                "q": 31.743329159407644
+              },
+              {
+                "n": 6,
+                "m": 3,
+                "parity": "odd",
+                "q": 31.93246770235952
+              },
+              0.9998439649183153
+            ],
+            [
+              {
+                "n": 4,
+                "m": 3,
+                "parity": "odd",
+                "q": 37.36437855935178
+              },
+              {
+                "n": 4,
+                "m": 4,
+                "parity": "odd",
+                "q": 37.38176735585881
+              },
+              0.9999988894974702
+            ]
+          ],
+          "n_dedup_dropped": 2,
+          "post_dedup": 50,
+          "downstream_low_norm": [],
+          "n_downstream_low_norm": 0,
+          "active": 50
+        },
+        "cond_G": 676.9790841176452,
+        "proj_info": {
+          "n_pts": 3840,
+          "n_modes": 50,
+          "n_active": 50,
+          "rank": 50,
+          "cond": 33.27105065094122,
+          "max_coeff": 1474.8465514372642,
+          "smooth_tau": 0.00375,
+          "smoothing": true
+        }
+      },
+      "price": {
+        "spectral": 37.977729805859944,
+        "mc": 37.10702467284265,
+        "mc_sem": 0.018684998667321727,
+        "err_sem": 46.599154140699824
+      },
+      "fdm": {
+        "fine": 37.11112501010359,
+        "half": 37.111452486128265,
+        "richardson_trunc": 0.000327476024672535,
+        "spec_gap": 0.8666047957563521
+      },
+      "greeks": {
+        "rows": {
+          "delta1": {
+            "spectral": 0.4713030933937476,
+            "mc_crn": 0.446186668275759,
+            "sem": 0.004060092476324446,
+            "rel": 0.05629129443747922,
+            "n_sem": 6.186170700408828
+          },
+          "delta2": {
+            "spectral": 1.0916347274361073,
+            "mc_crn": 1.0668172082689074,
+            "sem": 0.003120559278926457,
+            "rel": 0.02326314102813418,
+            "n_sem": 7.95290745950443
+          }
+        },
+        "theta": 3.7753281404293286,
+        "gamma1": -0.01799615051856198
+      },
+      "pde_residual_rel": 1.8861320958997535e-07,
+      "perturbation": {
+        "eta": 0.26480930520569573,
+        "rho_c": 0.20621489454238376,
+        "baseline": 37.977729805859944,
+        "corrected": 37.22898731947711,
+        "mc": {
+          "price": 36.3213532435397,
+          "std_err": 0.02146599746846091,
+          "n_paths": 1500000,
+          "n_batches": 3
+        },
+        "ratio_ci": {
+          "median": 1.824760093310887,
+          "p2_5": 1.7882891794364104,
+          "p97_5": 1.8651954463796936,
+          "e_b": 1.656376562320247,
+          "e_c": 0.9076340759374162,
+          "sem": 0.02146599746846091,
+          "precision_ok": true
+        }
+      },
+      "wall_s": 294.9361398220062
+    },
+    "holdout_mahalanobis": {
+      "config": "holdout_mahalanobis",
+      "gates": [
+        {
+          "gate": "basis_condG_below_1e4",
+          "passed": true,
+          "detail": "cond(G)=1.00e+00 (gram_dedupe cond_warn analogue)"
+        },
+        {
+          "gate": "price_vs_mc_3sem",
+          "passed": true,
+          "detail": "spec=5.67153 MC=5.63496+-0.01838 (1.99 SEM)"
+        },
+        {
+          "gate": "price_vs_fdm_3x_trunc",
+          "passed": true,
+          "detail": "spec-FDM gap 0.01137 vs 3x Richardson trunc 0.03087 (floor 0.02)"
+        },
+        {
+          "gate": "delta1_vs_mc_crn_30pct_documented",
+          "passed": true,
+          "detail": "spec=-0.00106 MC-CRN=-0.00142+-0.00370 rel=25.5% (0.1 SEM) [documented 30% sanity bound]"
+        },
+        {
+          "gate": "delta2_vs_mc_crn_30pct_documented",
+          "passed": true,
+          "detail": "spec=-0.05256 MC-CRN=-0.05262+-0.00504 rel=0.1% (0.0 SEM) [documented 30% sanity bound]"
+        },
+        {
+          "gate": "pde_residual_pointwise",
+          "passed": true,
+          "detail": "rel residual 1.18e-07 (pointwise-exact basis convention)"
+        },
+        {
+          "gate": "perturbation_beats_baseline_ci",
+          "passed": true,
+          "detail": "N/A: outside the Level 2 validated scope (Mathieu-only) -- published as a claim-scope note, not a failure"
+        }
+      ],
+      "basis_health": {
+        "ledger": {
+          "basis": "BesselBasis",
+          "candidates": 54,
+          "constructed": 102,
+          "dedup_dropped": [],
+          "n_dedup_dropped": 0,
+          "post_dedup": 102,
+          "downstream_low_norm": [],
+          "n_downstream_low_norm": 0,
+          "active": 102
+        },
+        "cond_G": 1.000000000000043,
+        "proj_info": {
+          "n_pts": 3840,
+          "n_modes": 102,
+          "n_active": 102,
+          "rank": 102,
+          "cond": 7.088424772523892,
+          "max_coeff": 35962.665827109246,
+          "smooth_tau": 0.00625,
+          "smoothing": true
+        }
+      },
+      "price": {
+        "spectral": 5.6715264161714725,
+        "mc": 5.634958884982008,
+        "mc_sem": 0.018382197315263887,
+        "err_sem": 1.9892905381393304
+      },
+      "fdm": {
+        "fine": 5.660160337416923,
+        "half": 5.649869649713141,
+        "richardson_trunc": 0.010290687703782275,
+        "spec_gap": 0.011366078754549314
+      },
+      "greeks": {
+        "rows": {
+          "delta1": {
+            "spectral": -0.0010596411695548383,
+            "mc_crn": -0.0014216038073461886,
+            "sem": 0.003695518257752571,
+            "rel": 0.25461569244602145,
+            "n_sem": 0.09794638060088433
+          },
+          "delta2": {
+            "spectral": -0.05255627513651846,
+            "mc_crn": -0.052623748406355614,
+            "sem": 0.005042764715215482,
+            "rel": 0.0012821828904343502,
+            "n_sem": 0.013380213761225994
+          }
+        },
+        "theta": 10.018490260549962,
+        "gamma1": -0.013606740681961674
+      },
+      "pde_residual_rel": 1.1770573346672282e-07,
+      "perturbation": "N/A -- PerturbationCorrector is MathieuBasis-",
+      "wall_s": 96.19413089752197
+    }
+  },
+  "summary": "12/14 gates passed"
+}

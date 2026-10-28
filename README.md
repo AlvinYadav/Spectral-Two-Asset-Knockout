@@ -1,0 +1,109 @@
+# Spectral pricing of two-asset knockout options
+
+Code and evidence for
+
+> A. Yadav and S. Petrat, *Geometry-Adapted Spectral Pricing of Two-Asset Knockout
+> Options*, preprint, 2026.
+
+Two-asset European knockout options under constant-coefficient Black–Scholes dynamics
+are priced by eigenfunction expansion. After a change of variables the pricing
+equation becomes the heat equation on a bounded domain, and the shape of the
+transformed barrier selects the basis: Fourier–Galerkin modes on rectangles, Bessel
+modes on discs and Mathieu modes on ellipses. Each mode evolves by an exact
+exponential factor, so the price and its spot Greeks at any spot are a finite sum.
+Finite differences (Crank–Nicolson with Shortley–Weller boundaries) and
+bridge-corrected Monte Carlo are included as independent benchmarks.
+
+## Installation
+
+Python 3.11 or later.
+
+```bash
+pip install -r requirements.txt
+```
+
+## Quick start
+
+```python
+from twoasset.solvers._optimal import build_solver
+
+solver, *_ = build_solver("default")      # one of the six contracts below
+print(solver.price(), solver.greeks())
+```
+
+`build_solver` applies the production settings of the paper (mode counts, no payoff
+smoothing), which are kept in `twoasset/solvers/_optimal.py`. The command-line
+interface `python -m twoasset.cli configs/default.toml --no-mc --no-fdm --no-smooth`
+reads a configuration file as written.
+
+## Layout
+
+```
+twoasset/
+  core/                      Market, payoffs, survival domains
+  bases/                     Mathieu, Bessel and Fourier-Galerkin eigenbases
+  solvers/                   Spectral solver, finite differences, Monte Carlo
+  mathieu_backend.py         Mathieu functions from the three-term recurrence
+  projection_comparison.py   Comparison of projection measures (Table 6.6)
+  holdout_eval.py            Evaluation of a sealed holdout
+legacy/                      SciPy-based Mathieu functions, kept for comparison
+configs/                     The six contracts and the sealed holdouts
+validation/                  Scripts behind the paper's tables, and their outputs
+figures/                     Scripts for Figures 2.1, 3.1 and 6.2
+tests/                       Tests
+```
+
+The six contracts are `dnt`, `worst_of`, `spread` (rectangles, Fourier–Galerkin),
+`mahalanobis` (disc, Bessel), and `default` and `tight_barrier` (ellipses, Mathieu).
+
+## Reproducing the paper
+
+Run the scripts from the repository root with `PYTHONPATH=.`. Data are written to
+`validation/artifacts/`, figures as listed below.
+
+| Paper | Script | Output |
+|---|---|---|
+| Figure 2.1 | `figures/geometry_x_to_z.py` | `p1_geometry_x_to_z.pdf` in the working directory |
+| Figure 3.1 | `figures/elliptic_grid.py` | `p1_elliptic_grid.pdf` in the working directory |
+| Remark 3.1 | `validation/paper1_scipy_mathieu.py` | `paper1_scipy_mathieu.json` |
+| Table 5.1 | `validation/adi_vs_cn_bench.py` | `validation/adi_vs_cn_results.json` |
+| Monte Carlo references | `validation/paper1_mc.py` | `paper1_mc.json`, `paper1_mc_parts/` |
+| Grid placement (Section 6.1) | `validation/paper1_fdm_shift.py` | `paper1_fdm_shift.json` |
+| Table 6.1 | `validation/paper1_price_table.py` | `paper1_price_table.json` |
+| Mode counts (Section 6.1) | `validation/paper1_modes.py` | `paper1_modes.json` |
+| Table 6.2, Figure 6.1 | `validation/paper1_greeks.py` | `paper1_greeks.json` |
+| Tables 6.3 to 6.5 | `validation/paper1_evidence.py` | `paper1_evidence.json` |
+| Figure 6.2 | `figures/cost.py` | `validation/figures/p1_cost.pdf` |
+| Table 6.6 | `python -m twoasset.projection_comparison` | `validation/projection_comparison.json` |
+| Table 6.7 | `python -m twoasset.holdout_eval` | `validation/holdout_rerun.json` |
+| Table A.2 | `tests/test_mathieu_backend.py` | — |
+
+The finite-difference Greeks and the stored Monte Carlo runs of each contract are in
+`validation/<contract>.toml`.
+
+Each finite-difference solve at `N = 640` takes a few minutes; on a machine with
+little memory, run them one at a time. The Monte Carlo references take hours.
+
+## Sealed holdouts
+
+`configs/holdout_*.toml` were written down before evaluation and evaluated once, with
+the outcome reported whatever it was. The records are
+`validation/holdout_evaluation.json` (holdout A and a Bessel holdout, July 2026, at
+settings that still pre-smoothed the payoff) and `validation/holdout_evaluation_r4.json`
+(holdouts B and C, at the settings of the paper). Besides the six gates of the paper,
+these records contain a seventh gate for a local-volatility correction that is not part
+of this paper; its code is not included here. Digests and dates of the sealed files
+are in `validation/HOLDOUT_SEALS.md`.
+
+`python -m twoasset.holdout_eval` repeats the evaluation of holdouts B and C and writes
+`validation/holdout_rerun.json`, leaving the records untouched.
+
+## Tests
+
+```bash
+PYTHONPATH=. pytest tests
+```
+
+The tests check the Mathieu functions against their differential equations, the
+pointwise and Galerkin behaviour of the three bases, and the six production prices
+against stored values. They take about four minutes.

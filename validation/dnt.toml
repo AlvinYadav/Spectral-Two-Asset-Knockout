@@ -1,0 +1,79 @@
+config = "configs/dnt.toml"
+config_name = "dnt"
+
+[market]
+S1_0 = 100
+S2_0 = 100
+sigma1 = 0.2
+sigma2 = 0.25
+rho = 0.4
+r = 0.05
+T = 1
+domain = "Rectangle"
+basis = "FourierBasis"
+
+[mc]
+seeds = [1, 2, 3, 42, 100]
+n_paths = 2000000
+prices = [0.2188382708, 0.2186539994, 0.2189554572, 0.2192857726, 0.2184472009]
+mean = 0.2188361402
+sem = 0.0001415732011
+wall_s = 475.6252062
+
+[fdm]
+coarse_N = 320
+coarse_Nt = 500
+coarse_price = 0.2189257635
+fine_N = 640
+fine_Nt = 1000
+fine_price = 0.2189281458
+grid_uncertainty = 2.382295491e-06
+wall_s = 108.9137518
+
+[spectral]
+price = 0.2188978822
+delta1 = -0.001091666376
+delta2 = -0.001183002071
+theta = 0.4371661179
+gamma1 = -0.001140414942
+gamma2 = -0.0007565358433
+gamma12 = 0.0002561554639
+smooth = false
+smooth_tau_frac = 0
+wall_s = 0.3617327213
+
+[fdm_greeks]
+price = 0.2189257635
+delta1 = -0.001082664021
+delta2 = -0.001183103034
+gamma1 = -0.001150606325
+gamma2 = -0.0007549515175
+gamma12 = 0.0002557618014
+theta = 0.4415608064
+vega1 = -2.053557171
+vega2 = -1.697956948
+rho = -0.3822551567
+N = 320
+N_time = 500
+wall_s = 184.8227992
+
+[pde_residual]
+
+[pde_residual.spectral]
+residual = 0.001578534943
+scale = 0.4371661179
+relative = 0.003610835511
+
+[pde_residual.fdm]
+residual = 0.004394429009
+scale = 0.4415608064
+relative = 0.009952035925
+
+[agreement]
+mc_mean = 0.2188361402
+mc_sem = 0.0001415732011
+fdm_fine = 0.2189281458
+fdm_uncertainty = 2.382295491e-06
+spectral = 0.2188978822
+spec_minus_mc_pct = 0.02821379
+fdm_minus_mc_pct = 0.04204316833

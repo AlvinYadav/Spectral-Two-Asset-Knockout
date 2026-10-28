@@ -1,0 +1,78 @@
+config = "configs/spread.toml"
+config_name = "spread"
+
+[market]
+S1_0 = 100
+S2_0 = 100
+sigma1 = 0.25
+sigma2 = 0.35
+rho = 0.6
+r = 0.05
+T = 1
+domain = "Rectangle"
+basis = "FourierBasis"
+
+[mc]
+seeds = [1, 2, 3, 42, 100]
+n_paths = 2000000
+prices = [6.792346117, 6.786844976, 6.787502178, 6.777671976, 6.780979135]
+mean = 6.785068877
+sem = 0.002583348903
+wall_s = 607.4534459
+
+[fdm]
+coarse_N = 320
+coarse_Nt = 500
+coarse_price = 6.78923788
+fine_N = 640
+fine_Nt = 1000
+fine_price = 6.78574871
+grid_uncertainty = 0.003489169637
+wall_s = 250.6636488
+
+[spectral]
+price = 6.826927461
+delta1 = 0.4075523227
+delta2 = -0.3091393105
+theta = -5.241859284
+gamma1 = 0.01275285589
+gamma2 = 0.01151984118
+gamma12 = -0.01354966858
+smooth_tau_frac = 0.005
+wall_s = 0.6355440617
+
+[fdm_greeks]
+price = 6.78923788
+delta1 = 0.4173741252
+delta2 = -0.3119258709
+gamma1 = 0.01488537212
+gamma2 = 0.01223933752
+gamma12 = -0.01355153631
+theta = -5.282418444
+vega1 = 8.953442515
+vega2 = 22.63591814
+rho = 3.767538001
+N = 320
+N_time = 500
+wall_s = 275.891777
+
+[pde_residual]
+
+[pde_residual.spectral]
+residual = -1.163546414
+scale = 7.113576007
+relative = 0.1635670179
+
+[pde_residual.fdm]
+residual = -0.06092261337
+scale = 7.496594228
+relative = 0.008126705476
+
+[agreement]
+mc_mean = 6.785068877
+mc_sem = 0.002583348903
+fdm_fine = 6.78574871
+fdm_uncertainty = 0.003489169637
+spectral = 6.826927461
+spec_minus_mc_pct = 0.6169220255
+fdm_minus_mc_pct = 0.01001955754

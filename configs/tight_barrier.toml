@@ -1,0 +1,41 @@
+# Tight barrier — significant knockout probability
+# Good test case: spectral price should be noticeably below vanilla
+
+[financial]
+S1_0 = 100.0
+S2_0 = 100.0
+sigma1 = 0.20
+sigma2 = 0.30
+rho = 0.50
+r = 0.05
+T = 1.0
+K = 180.0
+w1 = 1.0
+w2 = 1.0
+
+[barrier]
+R = 0.3    # Very tight — many paths knock out
+
+[numerical]
+mathieu_backend   = "tridiagonal"
+projection_method = "galerkin"
+smooth_tau_frac   = 0.0
+N_trunc = 50
+N_angular_max = 8
+M_radial_max = 5
+q_max = 350.0
+q_scan_points = 5250
+N_mu_quad = 50
+N_nu_quad = 96
+
+[monte_carlo]
+enabled = false
+n_paths = 500_000
+n_steps = 500
+seed = 42
+
+[fdm]
+enabled = true
+N_mu = 320
+N_nu = 320
+N_time = 500

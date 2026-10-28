@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.DS_Store
+
+# Outputs written by local runs
+results/
+validation/figures/
+validation/runs/
+validation/runlog.csv
+validation/holdout_rerun.json
+figures/*.pdf
+figures/*.png

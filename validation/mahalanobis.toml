@@ -1,0 +1,79 @@
+config = "configs/mahalanobis.toml"
+config_name = "mahalanobis"
+
+[market]
+S1_0 = 100
+S2_0 = 100
+sigma1 = 0.2
+sigma2 = 0.3
+rho = 0.5
+r = 0.05
+T = 1
+domain = "MahalanobisEllipse"
+basis = "BesselBasis"
+
+[mc]
+seeds = [1, 2, 3, 42, 100]
+n_paths = 2000000
+prices = [10.72097066, 10.71488013, 10.73053732, 10.74723594, 10.72678968]
+mean = 10.72808275
+sem = 0.005474635867
+wall_s = 258.2197399
+
+[fdm]
+coarse_N = 320
+coarse_Nt = 500
+coarse_price = 10.71181961
+fine_N = 640
+fine_Nt = 1000
+fine_price = 10.72114074
+grid_uncertainty = 0.009321123599
+wall_s = 34.49428177
+
+[spectral]
+price = 10.744549
+delta1 = -0.00383067713
+delta2 = 0.1007195062
+theta = 14.25296564
+gamma1 = -0.04633201212
+gamma2 = -0.020801759
+gamma12 = 0.01475670867
+smooth = true
+smooth_tau_frac = 0.005
+wall_s = 0.4373929501
+
+[fdm_greeks]
+price = 10.71181961
+delta1 = -0.003421380949
+delta2 = 0.1004742415
+gamma1 = -0.04586261314
+gamma2 = -0.02059930798
+gamma12 = 0.01477296947
+theta = 14.31657041
+vega1 = 7.747262894
+vega2 = 4.941216181
+rho = 9.164590243
+N = 320
+N_time = 500
+wall_s = 51.22624898
+
+[pde_residual]
+
+[pde_residual.spectral]
+residual = 9.705264169e-07
+scale = 14.25296564
+relative = 6.809294578e-08
+
+[pde_residual.fdm]
+residual = 0.2559233504
+scale = 14.31657041
+relative = 0.01787602359
+
+[agreement]
+mc_mean = 10.72808275
+mc_sem = 0.005474635867
+fdm_fine = 10.72114074
+fdm_uncertainty = 0.009321123599
+spectral = 10.744549
+spec_minus_mc_pct = 0.1534873919
+fdm_minus_mc_pct = -0.06470876519

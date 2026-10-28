@@ -1,0 +1,30 @@
+[financial]
+S1_0   = 100.0
+S2_0   = 100.0
+sigma1 = 0.25
+sigma2 = 0.30
+rho    = 0.50
+r      = 0.05
+T      = 1.0
+
+[worstof]
+B      = 0.60     # Barrier: knockout if min(S₁/S₁⁰, S₂/S₂⁰) < B
+K      = 90.0     # Strike for the call on worst performer
+R_max  = 1.5      # Outer truncation radius
+
+[spectral]
+N_angular = 12
+N_radial  = 12
+N_quad_r  = 80
+N_quad_th = 80
+
+[monte_carlo]
+enabled  = true
+n_paths  = 500_000
+n_steps  = 1000
+seed     = 42
+
+[fdm]
+enabled  = true
+N_grid   = 200
+N_time   = 500

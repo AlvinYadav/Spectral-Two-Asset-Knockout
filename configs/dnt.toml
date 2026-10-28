@@ -1,0 +1,35 @@
+[financial]
+S1_0   = 100.0
+S2_0   = 100.0
+sigma1 = 0.20
+sigma2 = 0.25
+rho    = 0.40
+r      = 0.05
+T      = 1.0
+
+[dnt]
+notional = 1.0
+L1       = 80.0      # lower barrier, asset 1
+U1       = 125.0     # upper barrier, asset 1
+L2       = 75.0      # lower barrier, asset 2
+U2       = 130.0     # upper barrier, asset 2
+x1_lo    = -0.22314  # ln(80/100)
+x1_hi    =  0.22314  # ln(125/100)
+x2_lo    = -0.28768  # ln(75/100)
+x2_hi    =  0.26236  # ln(130/100)
+
+[spectral]
+N_modes  = 25
+N_quad   = 120
+smooth   = true
+
+[monte_carlo]
+enabled  = true
+n_paths  = 500_000
+n_steps  = 500
+seed     = 42
+
+[fdm]
+enabled  = true
+N_grid   = 200
+N_time   = 500

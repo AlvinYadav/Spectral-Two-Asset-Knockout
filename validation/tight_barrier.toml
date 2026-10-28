@@ -1,0 +1,78 @@
+config = "configs/tight_barrier.toml"
+config_name = "tight_barrier"
+
+[market]
+S1_0 = 100
+S2_0 = 100
+sigma1 = 0.2
+sigma2 = 0.3
+rho = 0.5
+r = 0.05
+T = 1
+domain = "EuclideanCircle"
+basis = "MathieuBasis"
+
+[mc]
+seeds = [1, 2, 3, 42, 100]
+n_paths = 2000000
+prices = [4.438509884, 4.434034088, 4.429197408, 4.443144382, 4.432615491]
+mean = 4.435500251
+sem = 0.002425777562
+wall_s = 425.2833228
+
+[fdm]
+coarse_N = 320
+coarse_Nt = 500
+coarse_price = 4.440219092
+fine_N = 640
+fine_Nt = 1000
+fine_price = 4.43851993
+grid_uncertainty = 0.001699161704
+wall_s = 161.3619831
+
+[spectral]
+price = 4.459349384
+delta1 = 0.003626253266
+delta2 = -0.005826216543
+theta = 9.305763766
+gamma1 = -0.01776370012
+gamma2 = -0.0137810704
+gamma12 = 0.002274753193
+smooth_tau_frac = 0.005
+wall_s = 13.9888289
+
+[fdm_greeks]
+price = 4.440219092
+delta1 = -0.0008567556538
+delta2 = -0.003708234875
+gamma1 = -0.01760541349
+gamma2 = -0.01369744793
+gamma12 = 0.002301519763
+theta = 9.378108234
+vega1 = -30.73646583
+vega2 = -41.43114998
+rho = 0.1394108852
+N = 320
+N_time = 500
+wall_s = 251.8494651
+
+[pde_residual]
+
+[pde_residual.spectral]
+residual = 7.351361606e-07
+scale = 9.305763766
+relative = 7.899793924e-08
+
+[pde_residual.fdm]
+residual = 0.138793988
+scale = 9.378108234
+relative = 0.01479978525
+
+[agreement]
+mc_mean = 4.435500251
+mc_sem = 0.002425777562
+fdm_fine = 4.43851993
+fdm_uncertainty = 0.001699161704
+spectral = 4.459349384
+spec_minus_mc_pct = 0.5376875665
+fdm_minus_mc_pct = 0.06807980116

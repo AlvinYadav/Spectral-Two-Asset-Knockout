@@ -1,0 +1,258 @@
+{
+  "evaluated_at": "Level 2P R.4, fresh sealed holdouts (post-promotion)",
+  "configs": {
+    "holdout_ellipse_2026b": {
+      "config": "holdout_ellipse_2026b",
+      "gates": [
+        {
+          "gate": "basis_condG_below_1e4",
+          "passed": true,
+          "detail": "cond(G)=1.00e+00 (gram_dedupe cond_warn analogue)"
+        },
+        {
+          "gate": "price_vs_mc_3sem",
+          "passed": true,
+          "detail": "spec=11.30419 MC=11.31400+-0.01196 (0.82 SEM)"
+        },
+        {
+          "gate": "price_vs_fdm_3x_trunc",
+          "passed": true,
+          "detail": "spec-FDM gap 0.00031 vs 3x Richardson trunc 0.00214 (floor 0.02)"
+        },
+        {
+          "gate": "delta1_vs_mc_crn_30pct_documented",
+          "passed": true,
+          "detail": "spec=0.64349 MC-CRN=0.64395+-0.00175 rel=0.1% (0.3 SEM) [documented 30% sanity bound]"
+        },
+        {
+          "gate": "delta2_vs_mc_crn_30pct_documented",
+          "passed": true,
+          "detail": "spec=0.23212 MC-CRN=0.23473+-0.00270 rel=1.1% (1.0 SEM) [documented 30% sanity bound]"
+        },
+        {
+          "gate": "pde_residual_pointwise",
+          "passed": true,
+          "detail": "rel residual 1.59e-07 (pointwise-exact basis convention)"
+        },
+        {
+          "gate": "perturbation_beats_baseline_ci",
+          "passed": true,
+          "detail": "eta=0.271 R=43.15 [14.54,931.57] (pass = CI lower bound > 1)"
+        }
+      ],
+      "basis_health": {
+        "ledger": {
+          "basis": "MathieuBasis",
+          "candidates": 85,
+          "constructed": 85,
+          "dedup_dropped": [],
+          "n_dedup_dropped": 0,
+          "post_dedup": 85,
+          "downstream_low_norm": [],
+          "n_downstream_low_norm": 0,
+          "active": 85
+        },
+        "cond_G": 1.0000000000026144,
+        "proj_info": {
+          "n_pts": 4800,
+          "n_modes": 85,
+          "n_active": 85,
+          "rank": 85,
+          "cond": NaN,
+          "max_coeff": 25678.50274440174,
+          "smooth_tau": 0.0,
+          "smoothing": false
+        }
+      },
+      "price": {
+        "spectral": 11.30418871616024,
+        "mc": 11.314001431223728,
+        "mc_sem": 0.011961506113237973,
+        "err_sem": 0.8203578187054398
+      },
+      "fdm": {
+        "fine": 11.303880652652913,
+        "half": 11.303167559257274,
+        "richardson_trunc": 0.000713093395638964,
+        "spec_gap": 0.00030806350732781596
+      },
+      "greeks": {
+        "rows": {
+          "delta1": {
+            "spectral": 0.6434906720865956,
+            "mc_crn": 0.6439452007883252,
+            "sem": 0.001754062930917091,
+            "rel": 0.0007058499716639454,
+            "n_sem": 0.2591290732607455
+          },
+          "delta2": {
+            "spectral": 0.23211522443388197,
+            "mc_crn": 0.23472910671046218,
+            "sem": 0.0027022968682299075,
+            "rel": 0.011135739888468254,
+            "n_sem": 0.9672816881486426
+          }
+        },
+        "theta": -2.305448170514668,
+        "gamma1": 0.015211267400730174
+      },
+      "pde_residual_rel": 1.5940517491621636e-07,
+      "perturbation": {
+        "eta": 0.27053697444023367,
+        "rho_c": 0.10924567546015898,
+        "baseline": 11.30418871616024,
+        "corrected": 10.673976803522738,
+        "mc": {
+          "price": 10.687808390482937,
+          "std_err": 0.013585715966516653,
+          "n_paths": 1500000,
+          "n_batches": 3
+        },
+        "ratio_ci": {
+          "median": 43.154341311833946,
+          "p2_5": 14.537362040277815,
+          "p97_5": 931.5733052794814,
+          "e_b": 0.6163803256773033,
+          "e_c": -0.01383158696019926,
+          "sem": 0.013585715966516653,
+          "precision_ok": false
+        }
+      },
+      "wall_s": 551.9812390804291
+    },
+    "holdout_ellipse_2026c": {
+      "config": "holdout_ellipse_2026c",
+      "gates": [
+        {
+          "gate": "basis_condG_below_1e4",
+          "passed": true,
+          "detail": "cond(G)=1.00e+00 (gram_dedupe cond_warn analogue)"
+        },
+        {
+          "gate": "price_vs_mc_3sem",
+          "passed": true,
+          "detail": "spec=34.41762 MC=34.42036+-0.01358 (0.20 SEM)"
+        },
+        {
+          "gate": "price_vs_fdm_3x_trunc",
+          "passed": true,
+          "detail": "spec-FDM gap 0.00041 vs 3x Richardson trunc 0.00364 (floor 0.02)"
+        },
+        {
+          "gate": "delta1_vs_mc_crn_30pct_documented",
+          "passed": true,
+          "detail": "spec=1.28418 MC-CRN=1.28277+-0.00147 rel=0.1% (1.0 SEM) [documented 30% sanity bound]"
+        },
+        {
+          "gate": "delta2_vs_mc_crn_30pct_documented",
+          "passed": true,
+          "detail": "spec=0.57612 MC-CRN=0.57507+-0.00218 rel=0.2% (0.5 SEM) [documented 30% sanity bound]"
+        },
+        {
+          "gate": "pde_residual_pointwise",
+          "passed": true,
+          "detail": "rel residual 1.95e-07 (pointwise-exact basis convention)"
+        },
+        {
+          "gate": "perturbation_beats_baseline_ci",
+          "passed": true,
+          "detail": "eta=0.241 R=8.38 [4.31,107.25] (pass = CI lower bound > 1)"
+        }
+      ],
+      "basis_health": {
+        "ledger": {
+          "basis": "MathieuBasis",
+          "candidates": 85,
+          "constructed": 85,
+          "dedup_dropped": [],
+          "n_dedup_dropped": 0,
+          "post_dedup": 85,
+          "downstream_low_norm": [],
+          "n_downstream_low_norm": 0,
+          "active": 85
+        },
+        "cond_G": 1.0000000000077423,
+        "proj_info": {
+          "n_pts": 4800,
+          "n_modes": 85,
+          "n_active": 85,
+          "rank": 85,
+          "cond": NaN,
+          "max_coeff": 3051633.6943815732,
+          "smooth_tau": 0.0,
+          "smoothing": false
+        }
+      },
+      "price": {
+        "spectral": 34.41761532389772,
+        "mc": 34.420355987695636,
+        "mc_sem": 0.013578261642974187,
+        "err_sem": 0.20184202293182296
+      },
+      "fdm": {
+        "fine": 34.417201349947135,
+        "half": 34.41598780807044,
+        "richardson_trunc": 0.001213541876694535,
+        "spec_gap": 0.0004139739505859552
+      },
+      "greeks": {
+        "rows": {
+          "delta1": {
+            "spectral": 1.2841766453543915,
+            "mc_crn": 1.2827664602534163,
+            "sem": 0.0014700489913861403,
+            "rel": 0.0010993311289855029,
+            "n_sem": 0.9592776222004901
+          },
+          "delta2": {
+            "spectral": 0.5761201839847279,
+            "mc_crn": 0.5750667775300192,
+            "sem": 0.0021786267528550126,
+            "rel": 0.0018317984899651927,
+            "n_sem": 0.4835185528352606
+          }
+        },
+        "theta": -4.881004737603607,
+        "gamma1": -0.0002043656909815298
+      },
+      "pde_residual_rel": 1.9495287460319355e-07,
+      "perturbation": {
+        "eta": 0.24120872278518454,
+        "rho_c": 0.062117271994748736,
+        "baseline": 34.41761532389772,
+        "corrected": 34.23265297975411,
+        "mc": {
+          "price": 34.20782514962671,
+          "std_err": 0.01576815814751455,
+          "n_paths": 1500000,
+          "n_batches": 3
+        },
+        "ratio_ci": {
+          "median": 8.379284809924075,
+          "p2_5": 4.312271802427416,
+          "p97_5": 107.25039067405933,
+          "e_b": 0.20979017427101354,
+          "e_c": 0.024827830127399864,
+          "sem": 0.01576815814751455,
+          "precision_ok": false
+        }
+      },
+      "wall_s": 564.1875338554382
+    }
+  },
+  "summary": "14/14 gates passed",
+  "provenance": {
+    "commit": "082888b",
+    "timestamp_utc": "2026-07-17T02:27:00.463541+00:00",
+    "python": "3.11.9",
+    "numpy": "2.2.5",
+    "scipy": "1.15.3",
+    "matplotlib": "3.10.3",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "configs": [
+      "holdout_ellipse_2026b",
+      "holdout_ellipse_2026c"
+    ],
+    "label": "Level 2P R.4, fresh sealed holdouts (post-promotion)"
+  }
+}

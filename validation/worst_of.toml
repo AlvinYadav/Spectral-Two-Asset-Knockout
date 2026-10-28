@@ -1,0 +1,78 @@
+config = "configs/worst_of.toml"
+config_name = "worst_of"
+
+[market]
+S1_0 = 100
+S2_0 = 100
+sigma1 = 0.25
+sigma2 = 0.3
+rho = 0.5
+r = 0.05
+T = 1
+domain = "Rectangle"
+basis = "FourierBasis"
+
+[mc]
+seeds = [1, 2, 3, 42, 100]
+n_paths = 2000000
+prices = [10.4433311, 10.44963715, 10.44146333, 10.45246155, 10.45109591]
+mean = 10.44759781
+sem = 0.002189613812
+wall_s = 785.9426932
+
+[fdm]
+coarse_N = 320
+coarse_Nt = 500
+coarse_price = 10.44545849
+fine_N = 640
+fine_Nt = 1000
+fine_price = 10.44572753
+grid_uncertainty = 0.0002690317908
+wall_s = 213.588161
+
+[spectral]
+price = 10.44896876
+delta1 = 0.2968269929
+delta2 = 0.2410124482
+theta = -2.646431603
+gamma1 = -0.004318411996
+gamma2 = -0.004863695003
+gamma12 = 0.01082426943
+smooth_tau_frac = 0.005
+wall_s = 0.595593214
+
+[fdm_greeks]
+price = 10.44545849
+delta1 = 0.2964047058
+delta2 = 0.240652057
+gamma1 = -0.004426635868
+gamma2 = -0.004851978831
+gamma12 = 0.01078967679
+theta = -2.652818048
+vega1 = 5.090461853
+vega2 = -1.088393753
+rho = 43.25005997
+N = 320
+N_time = 500
+wall_s = 220.4680681
+
+[pde_residual]
+
+[pde_residual.spectral]
+residual = 0.04125170031
+scale = 4.059101035
+relative = 0.01016276756
+
+[pde_residual.fdm]
+residual = -0.01039254627
+scale = 4.046128796
+relative = 0.002568515931
+
+[agreement]
+mc_mean = 10.44759781
+mc_sem = 0.002189613812
+fdm_fine = 10.44572753
+fdm_uncertainty = 0.0002690317908
+spectral = 10.44896876
+spec_minus_mc_pct = 0.01312215233
+fdm_minus_mc_pct = -0.01790154203

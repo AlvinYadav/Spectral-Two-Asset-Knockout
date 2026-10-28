@@ -1,0 +1,34 @@
+[financial]
+S1_0   = 100.0
+S2_0   = 100.0
+sigma1 = 0.20
+sigma2 = 0.30
+rho    = 0.50
+r      = 0.05
+T      = 1.0
+K      = 180.0      # Basket strike (w₁·S₁ + w₂·S₂ − K)₊
+w1     = 1.0
+w2     = 1.0
+
+[mahalanobis]
+R = 1.5             # Mahalanobis radius; loose ≈ 3σ ellipse
+
+[numerical]
+projection_method = "galerkin"
+smooth_tau_frac   = 0.0    # FDM pre-smoother off: measured degradation
+
+N_angular_max = 8   # angular Bessel order n = 0..8
+M_radial_max  = 6   # radial zeros per n
+N_r_quad      = 40
+N_theta_quad  = 96
+
+[monte_carlo]
+enabled = true
+n_paths = 500_000
+n_steps = 500
+seed    = 42
+
+[fdm]
+enabled = true
+N       = 200
+N_time  = 500

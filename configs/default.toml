@@ -1,0 +1,44 @@
+# ============================================================
+#  Default configuration for two-asset knockout option pricing
+# ============================================================
+
+[financial]
+S1_0   = 100.0    # Spot price, asset 1
+S2_0   = 100.0    # Spot price, asset 2
+sigma1 = 0.20     # Volatility, asset 1 (20%)
+sigma2 = 0.30     # Volatility, asset 2 (30%)
+rho    = 0.50     # Correlation between Brownian motions
+r      = 0.05     # Risk-free rate (5%)
+T      = 1.0      # Time to maturity (years)
+K      = 180.0    # Strike price (basket call)
+w1     = 1.0      # Basket weight, asset 1
+w2     = 1.0      # Basket weight, asset 2
+
+[barrier]
+R = 0.5           # Knockout radius in log-return space: x₁² + x₂² > R²
+                  # Small R = tight barrier (more knockouts, lower price)
+                  # Large R = loose barrier (fewer knockouts, approaches vanilla)
+
+[numerical]
+mathieu_backend   = "tridiagonal"
+projection_method = "galerkin"
+smooth_tau_frac   = 0.0
+N_trunc        = 50    # Fourier truncation order for Mathieu functions
+N_angular_max  = 8     # Maximum angular Mathieu order (n = 0..N)
+M_radial_max   = 5     # Maximum radial roots per angular order
+q_max          = 350.0 # Search range for Mathieu parameter q
+q_scan_points  = 5250  # Grid density for root bracketing (15 pts / unit q)
+N_mu_quad      = 50    # Radial quadrature points (Gauss-Legendre; >= 10*M_radial)
+N_nu_quad      = 96    # Angular quadrature points (trapezoidal)
+
+[monte_carlo]
+enabled  = true
+n_paths  = 2_000_000
+n_steps  = 500
+seed     = 1
+
+[fdm]
+enabled  = true
+N_mu     = 320          # Radial grid points
+N_nu     = 320         # Angular grid points
+N_time   = 500         # Time steps (implicit scheme)
