@@ -1,0 +1,136 @@
+{
+  "table66": [
+    {
+      "config": "default",
+      "M_radial_max": 5,
+      "N_mu_quad": 50,
+      "n_modes": 85,
+      "price": 18.98997412971994
+    },
+    {
+      "config": "default",
+      "M_radial_max": 6,
+      "N_mu_quad": 60,
+      "n_modes": 102,
+      "price": 18.99012712562243
+    },
+    {
+      "config": "default",
+      "M_radial_max": 6,
+      "N_mu_quad": 50,
+      "n_modes": 102,
+      "price": 18.989974129719936
+    },
+    {
+      "config": "default",
+      "M_radial_max": 5,
+      "N_mu_quad": 60,
+      "n_modes": 85,
+      "price": 18.990127125622436
+    },
+    {
+      "config": "tight_barrier",
+      "M_radial_max": 5,
+      "N_mu_quad": 50,
+      "n_modes": 85,
+      "price": 4.436741394691885
+    },
+    {
+      "config": "tight_barrier",
+      "M_radial_max": 6,
+      "N_mu_quad": 60,
+      "n_modes": 102,
+      "price": 4.43680056635938
+    },
+    {
+      "config": "tight_barrier",
+      "M_radial_max": 6,
+      "N_mu_quad": 50,
+      "n_modes": 102,
+      "price": 4.436741394691885
+    },
+    {
+      "config": "tight_barrier",
+      "M_radial_max": 5,
+      "N_mu_quad": 60,
+      "n_modes": 85,
+      "price": 4.43680056635938
+    },
+    {
+      "config": "holdout_ellipse",
+      "M_radial_max": 5,
+      "N_mu_quad": 50,
+      "n_modes": 85,
+      "price": 37.10913075655498
+    },
+    {
+      "config": "holdout_ellipse",
+      "M_radial_max": 6,
+      "N_mu_quad": 60,
+      "n_modes": 102,
+      "price": 37.109239673779264
+    },
+    {
+      "config": "holdout_ellipse",
+      "M_radial_max": 6,
+      "N_mu_quad": 50,
+      "n_modes": 102,
+      "price": 37.1091307565272
+    },
+    {
+      "config": "holdout_ellipse",
+      "M_radial_max": 5,
+      "N_mu_quad": 60,
+      "n_modes": 85,
+      "price": 37.10923967380706
+    }
+  ],
+  "doubled_quadrature": [
+    {
+      "config": "default",
+      "price": 18.98997412971994,
+      "price_doubled": 18.99031646453465,
+      "rel_change": 1.8027134337963326e-05
+    },
+    {
+      "config": "tight_barrier",
+      "price": 4.436741394691885,
+      "price_doubled": 4.436782099275364,
+      "rel_change": 9.1744322821324e-06
+    },
+    {
+      "config": "mahalanobis",
+      "price": 10.729881903750586,
+      "price_doubled": 10.729913321744815,
+      "rel_change": 2.928083879316651e-06
+    },
+    {
+      "config": "dnt",
+      "price": 0.21890416378096317,
+      "price_doubled": 0.21892199192938103,
+      "rel_change": 8.144271040772802e-05
+    },
+    {
+      "config": "spread",
+      "price": 6.790164069853868,
+      "price_doubled": 6.790169602361651,
+      "rel_change": 8.147826364212721e-07
+    },
+    {
+      "config": "worst_of",
+      "price": 10.446345434353647,
+      "price_doubled": 10.446188012358967,
+      "rel_change": -1.5069575831086602e-05
+    }
+  ],
+  "provenance": {
+    "commit": "8290625",
+    "timestamp_utc": "2026-10-27T18:28:57.017189+00:00",
+    "python": "3.11.9",
+    "numpy": "2.4.2",
+    "scipy": "1.17.1",
+    "matplotlib": "3.10.8",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "section": "quad"
+  }
+}

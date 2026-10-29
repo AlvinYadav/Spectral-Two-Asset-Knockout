@@ -1,0 +1,54 @@
+{
+  "rows": [
+    {
+      "config": "dnt",
+      "N_quad": 120,
+      "price": 0.21890416378096317
+    },
+    {
+      "config": "dnt",
+      "N_quad": 240,
+      "price": 0.21892199192938103
+    },
+    {
+      "config": "dnt",
+      "N_quad": 480,
+      "price": 0.21892649247709214
+    },
+    {
+      "config": "dnt",
+      "N_quad": 960,
+      "price": 0.21892762309471753
+    },
+    {
+      "config": "worst_of",
+      "N_quad": 128,
+      "price": 10.446345434353647
+    },
+    {
+      "config": "worst_of",
+      "N_quad": 256,
+      "price": 10.446188012358967
+    },
+    {
+      "config": "worst_of",
+      "N_quad": 512,
+      "price": 10.445820283210322
+    },
+    {
+      "config": "worst_of",
+      "N_quad": 1024,
+      "price": 10.445721142218458
+    }
+  ],
+  "provenance": {
+    "commit": "8290625",
+    "timestamp_utc": "2026-10-27T18:57:44.301895+00:00",
+    "python": "3.11.9",
+    "numpy": "2.4.2",
+    "scipy": "1.17.1",
+    "matplotlib": "3.10.8",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "section": "fquad"
+  }
+}
