@@ -1,5 +1,6 @@
 """Figure 6.2: the costs of Table 6.3, read from
-validation/artifacts/paper1_evidence.json and validation/<contract>.toml."""
+validation/artifacts/paper1_evidence.json, paper1_market_cost.json (the market Greeks,
+with the rate bumps on the fitted eigenbasis) and validation/<contract>.toml."""
 from __future__ import annotations
 
 import json
@@ -36,6 +37,8 @@ INK, INK2, GRID = "#0b0b0b", "#52514e", "#d9d8d4"
 def load():
     ev = json.loads((Path(ARTIFACTS_DIR) / "paper1_evidence.json").read_text())
     cost = {r["config"]: r for r in ev["cost"]}
+    mc = json.loads((Path(ARTIFACTS_DIR) / "paper1_market_cost.json").read_text())
+    market = {r["config"]: r for r in mc["rows"]}
     rows = {}
     for c in ORDER:
         v = tomllib.loads((ROOT / "validation" / f"{c}.toml").read_text())
@@ -47,7 +50,7 @@ def load():
             mc_price=v["mc"]["wall_s"] / len(v["mc"]["seeds"]),
             spec_spot=r["cold_total_s"] + r["greeks_fresh_median_s"],
             fdm_spot=fd_set * FD_SPOT_SOLVES / FD_SOLVES,
-            spec_market=r["greeks_full_s"],
+            spec_market=market[c]["greeks_full_s"],
             fdm_market=fd_set * (FD_SOLVES - FD_SPOT_SOLVES) / FD_SOLVES,
         )
     return rows
@@ -114,7 +117,7 @@ def main():
     _bars(ax_b, [("spec_spot", "spectral, from scratch", BLUE, None),
                  ("fdm_spot", "finite differences (10 solves)", ORANGE, None)],
           "(b) Price with the six spot Greeks, from scratch")
-    _bars(ax_c, [("spec_market", "spectral (6 re-solves)", BLUE, None),
+    _bars(ax_c, [("spec_market", "spectral (4 re-solves, 2 re-projections)", BLUE, None),
                  ("fdm_market", "finite differences (6 solves)", ORANGE, None)],
           "(c) The three market Greeks")
     fig.tight_layout(h_pad=1.4)

@@ -1,0 +1,30 @@
+{
+  "config": "mahalanobis",
+  "vol_bump": 0.01,
+  "grids": {
+    "N160": {
+      "price": 10.692065579712793,
+      "vega1_moving": 7.773674387788176,
+      "vega2_moving": 4.882977417300882,
+      "vega1_fixed": -74.0046837952521,
+      "vega2_fixed": -48.444430415473235
+    },
+    "N320": {
+      "price": 10.711819613844645,
+      "vega1_moving": 7.747262893723583,
+      "vega2_moving": 4.9412161811703825,
+      "vega1_fixed": -74.04701704895223,
+      "vega2_fixed": -48.471335780005376
+    }
+  },
+  "provenance": {
+    "commit": "8c93586",
+    "timestamp_utc": "2026-11-02T10:50:31.361071+00:00",
+    "python": "3.11.9",
+    "numpy": "2.4.2",
+    "scipy": "1.17.1",
+    "matplotlib": "3.10.8",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "section": "vega_fixed"
+  }
+}

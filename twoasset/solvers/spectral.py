@@ -350,8 +350,11 @@ class SpectralSolver:
     def _market_greeks(self, S1, S2, t, *,
                        vol_bump: float = 0.01,
                        rate_bump: float = 1e-4) -> dict:
-        """Central-difference vega1, vega2, rho by rebuilding the solver at bumped
-        markets."""
+        """Central-difference vega1, vega2, rho over bumped markets. A volatility bump
+        rebuilds the solver; a rate bump reuses the fitted eigenbasis, since r leaves
+        Σ, the domain and the eigenpairs unchanged and enters only through the
+        exponential factor and the coefficients."""
+        import copy
         from dataclasses import replace, fields
 
         def fresh_basis():
@@ -368,17 +371,28 @@ class SpectralSolver:
                     kw[f.name] = v
             return type(self.basis)(**kw)
 
-        def price_at(**market_kw):
+        def price_at(reuse_basis=False, **market_kw):
             m_new = _bump_market(self.market, **market_kw)
+            if reuse_basis:
+                # A copy, so that projecting at the bumped rate leaves the
+                # coefficients of this solver's modes untouched.
+                basis = copy.deepcopy(self.basis)
+                basis.market = m_new
+            else:
+                basis = fresh_basis()
             solver = SpectralSolver(
                 market=m_new, payoff=self.payoff,
-                domain=self.domain, basis=fresh_basis(),
+                domain=self.domain, basis=basis,
                 smooth=self.smooth, smooth_tau_frac=self.smooth_tau_frac,
                 smooth_N_grid=self.smooth_N_grid,
                 smooth_N_steps=self.smooth_N_steps,
                 projection_method=self.projection_method,
             )
-            solver.fit(); solver.project()
+            if reuse_basis:
+                solver._fit_done = True
+            else:
+                solver.fit()
+            solver.project()
             return solver.price(S1, S2, t)
 
         vp1 = price_at(sigma1=self.market.sigma1 + vol_bump)
@@ -389,8 +403,8 @@ class SpectralSolver:
         vm2 = price_at(sigma2=self.market.sigma2 - vol_bump)
         vega2 = (vp2 - vm2) / (2 * vol_bump)
 
-        rp = price_at(r=self.market.r + rate_bump)
-        rm = price_at(r=self.market.r - rate_bump)
+        rp = price_at(reuse_basis=True, r=self.market.r + rate_bump)
+        rm = price_at(reuse_basis=True, r=self.market.r - rate_bump)
         rho = (rp - rm) / (2 * rate_bump)
 
         return dict(vega1=vega1, vega2=vega2, rho=rho)

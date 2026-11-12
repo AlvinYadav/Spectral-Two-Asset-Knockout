@@ -1,0 +1,90 @@
+{
+  "default/m15": {
+    "m": 15,
+    "N_time": 47,
+    "n": 547,
+    "min_offdiag": 0.0,
+    "max_bh": 0.024999999999999994,
+    "max_row_sum": -0.04999999999999005,
+    "max_re_eig": -0.8035139377251844,
+    "max_abs_im_eig": 0.07423768500113327,
+    "sup_norm2_step_powers": 0.9352342331812061,
+    "sup_norminf_step_powers": 0.9957117541861018,
+    "gate_Z2": true
+  },
+  "default/m30": {
+    "m": 30,
+    "N_time": 94,
+    "n": 2173,
+    "min_offdiag": 0.0,
+    "max_bh": 0.012499999999999997,
+    "max_row_sum": -0.04999999999998295,
+    "max_re_eig": -0.8048891021305828,
+    "max_abs_im_eig": 0.06345963158445178,
+    "sup_norm2_step_powers": NaN,
+    "sup_norminf_step_powers": NaN,
+    "gate_Z2": true
+  },
+  "tight_barrier/m15": {
+    "m": 15,
+    "N_time": 47,
+    "n": 545,
+    "min_offdiag": 0.0,
+    "max_bh": 0.014999999999999998,
+    "max_row_sum": -0.04999999999998295,
+    "max_re_eig": -2.119305405567518,
+    "max_abs_im_eig": 0.21539030038435722,
+    "sup_norm2_step_powers": 0.8375666927027118,
+    "sup_norminf_step_powers": 0.9877455991967374,
+    "gate_Z2": true
+  },
+  "tight_barrier/m30": {
+    "m": 30,
+    "N_time": 94,
+    "n": 2171,
+    "min_offdiag": 0.0,
+    "max_bh": 0.007499999999999999,
+    "max_row_sum": -0.05000000000003979,
+    "max_re_eig": -2.1229416222271364,
+    "max_abs_im_eig": 0.18106562415126556,
+    "sup_norm2_step_powers": NaN,
+    "sup_norminf_step_powers": NaN,
+    "gate_Z2": true
+  },
+  "mahalanobis/m15": {
+    "m": 15,
+    "N_time": 47,
+    "n": 697,
+    "min_offdiag": 0.0,
+    "max_bh": 0.015,
+    "max_row_sum": -0.04999999999997584,
+    "max_re_eig": -1.3466205648057474,
+    "max_abs_im_eig": 0.0,
+    "sup_norm2_step_powers": 0.8934378193321107,
+    "sup_norminf_step_powers": 0.9955535028451492,
+    "gate_Z2": true
+  },
+  "mahalanobis/m30": {
+    "m": 30,
+    "N_time": 94,
+    "n": 2809,
+    "min_offdiag": 0.0,
+    "max_bh": 0.0075,
+    "max_row_sum": -0.05000000000003979,
+    "max_re_eig": -1.348146363937758,
+    "max_abs_im_eig": 0.1568668617734117,
+    "sup_norm2_step_powers": NaN,
+    "sup_norminf_step_powers": NaN,
+    "gate_Z2": true
+  },
+  "provenance": {
+    "commit": "594b79b",
+    "timestamp_utc": "2026-11-10T20:47:32.352421+00:00",
+    "python": "3.11.9",
+    "numpy": "2.4.2",
+    "scipy": "1.17.1",
+    "matplotlib": "3.10.8",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "section": "z2"
+  }
+}

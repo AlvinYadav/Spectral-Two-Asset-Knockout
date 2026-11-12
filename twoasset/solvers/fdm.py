@@ -35,12 +35,19 @@ def _quad_theta(x1, x2, step_x1, step_x2, a, b, c):
     return max(min(min(valid), 1.0), 1e-6)
 
 
+def _barrier_inverse_cov(market, domain):
+    """Σ⁻¹ of a Mahalanobis barrier: the pricing covariance, unless the domain carries a
+    contractual one in `Sigma_contract`, which stays fixed when the market is bumped."""
+    Sigma = getattr(domain, "Sigma_contract", None)
+    return np.linalg.inv(market.Sigma if Sigma is None else Sigma)
+
+
 def _barrier_form(market, domain):
     """Return (a, b, c, R²) coefficients of the barrier xᵀM x = R² in x-space."""
     if isinstance(domain, EuclideanCircle):
         return 1.0, 1.0, 0.0, domain.R**2
     if isinstance(domain, MahalanobisEllipse):
-        Sinv = np.linalg.inv(market.Sigma)
+        Sinv = _barrier_inverse_cov(market, domain)
         return float(Sinv[0, 0]), float(Sinv[1, 1]), float(2*Sinv[0, 1]), domain.R**2
     raise ValueError(f"Unsupported curved domain: {type(domain).__name__}")
 
@@ -57,7 +64,7 @@ def _build_curved_system(market, domain, N, offset=None):
     if isinstance(domain, EuclideanCircle):
         half = R
     else:
-        M = np.linalg.inv(market.Sigma)
+        M = _barrier_inverse_cov(market, domain)
         evs = np.linalg.eigvalsh(M)
         half = R / np.sqrt(max(evs.min(), 1e-12))
     dx = 2.0 * half / (N + 1)
