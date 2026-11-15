@@ -1,5 +1,7 @@
 # Spectral pricing of two-asset knockout options
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24251333.svg)](https://doi.org/10.5281/zenodo.24251333)
+
 Code and evidence for
 
 > A. Yadav and S. Petrat, *Geometry-Adapted Spectral Pricing of Two-Asset Knockout
