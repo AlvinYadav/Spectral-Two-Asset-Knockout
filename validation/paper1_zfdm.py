@@ -311,7 +311,8 @@ def section_short():
     """Prices at tau = T/4 at the centre and the twelve off-centre spots of `levels`.
     The spectral basis is solved for T and evaluated at tau (no new fit); the reference
     solves the contract with maturity tau on the four z-space grids. The Euclidean
-    basket also gets the wider angular rungs of SHORT_RUNGS."""
+    basket also gets the wider index rungs of SHORT_RUNGS; every contract also gets the
+    earlier index truncation at production quadrature."""
     sys.path.insert(0, str(ROOT / "validation"))
     from paper1_evidence import build
     out = {}
@@ -333,18 +334,21 @@ def section_short():
             del s
         ref = [extrapolate([r["prices"][i] for r in rows]) for i in range(len(spots))]
         rungs = []
-        for n_ang, m_rad, q_max in (SHORT_RUNGS if name != "mahalanobis" else ((None,) * 3,)):
-            if n_ang is None or (n_ang, m_rad, q_max) == SHORT_RUNGS[0]:
-                _c, sol = build(name)                   # production settings
-                label = "production"
-            elif name == "default":
-                over = dict(N_angular_max=n_ang, M_radial_max=m_rad, q_max=q_max,
-                            q_scan_points=int(15 * q_max), N_mu_quad=max(50, 10 * m_rad),
-                            N_nu_quad=max(96, 16 * n_ang))
-                _c, sol = build(name, numerical=over)
-                label = f"n<={n_ang}, m<={m_rad}, q<={q_max:g}"
-            else:
-                continue
+        # production: the eigenvalue cutoff of the configs; then the earlier index
+        # truncation at production quadrature, and on the Euclidean basket the wider
+        # index rungs of SHORT_RUNGS
+        quad2 = (dict(N_r_quad=80, N_theta_quad=192) if name == "mahalanobis"
+                 else dict(N_mu_quad=100, N_nu_quad=192))
+        variants = [("production", None), ("production, quadrature x2", quad2),
+                    ("index", dict(truncation="index"))]
+        if name == "default":
+            for n_ang, m_rad, q_max in SHORT_RUNGS[1:]:
+                variants.append((f"index n<={n_ang}, m<={m_rad}, q<={q_max:g}", dict(
+                    truncation="index", N_angular_max=n_ang, M_radial_max=m_rad,
+                    q_max=q_max, q_scan_points=int(15 * q_max),
+                    N_mu_quad=max(50, 10 * m_rad), N_nu_quad=max(96, 16 * n_ang))))
+        for label, over in variants:
+            _c, sol = build(name) if over is None else build(name, numerical=over)
             t0 = time.perf_counter()
             sol.fit()
             sol.project()
@@ -358,7 +362,8 @@ def section_short():
                                 diff_pct=100 * (v - rf["V_R"]) / rf["V_R"],
                                 diff_e=(v - rf["V_R"]) / rf["e"] if rf["e"] else float("nan")))
             worst = max(per, key=lambda r: abs(r["diff_pct"]))
-            rungs.append(dict(label=label, n_modes=int(sol.n_modes()), cold_s=t_fit,
+            rungs.append(dict(label=label, truncation=sol.basis.truncation,
+                              n_modes=int(sol.n_modes()), cold_s=t_fit,
                               spots=per, centre_diff_pct=per[0]["diff_pct"],
                               max_abs_diff_pct=abs(worst["diff_pct"]),
                               worst_spot=(worst["fraction"], worst["angle_deg"])))

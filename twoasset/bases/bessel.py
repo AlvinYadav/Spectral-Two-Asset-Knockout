@@ -15,6 +15,17 @@ class BesselBasis(EigenBasis):
     M_radial_max: int = 6
     N_r_quad: int = 40
     N_theta_quad: int = 96
+    # Truncation rule. "index":
+    # orders n <= N_angular_max with the first M_radial_max zeros each (the
+    # earlier rule, default). "eigenvalue": every zero j_{n,m} < R sqrt(Lambda)
+    # with Lambda = lambda_1^2 + (2 / tau_min) ln(1 / eps_trunc),
+    # lambda_1 = j_{0,1} / R, tau_min = tau_min_frac * T, or Lambda =
+    # lambda2_max if given; orders run up to the first n with j_{n,1} at or
+    # above R sqrt(Lambda).
+    truncation: str = "index"
+    tau_min_frac: float = 0.25
+    eps_trunc: float = 1e-6
+    lambda2_max: float = None
 
     # Filled by .fit():
     modes: list = field(default_factory=list)
@@ -23,6 +34,7 @@ class BesselBasis(EigenBasis):
     R: float = 0.0
     gram_matrix: np.ndarray = field(default=None, repr=False)
     mode_ledger: dict = field(default=None, repr=False)
+    truncation_info: dict = field(default=None, repr=False)
     _last_dedup_dropped: list = field(default_factory=list, repr=False)
 
     def fit(self, market, domain):
@@ -35,7 +47,11 @@ class BesselBasis(EigenBasis):
         self._compute_norms()
         self._dedupe_near_degenerate_modes()
         low_norm = [md.meta for md in self.modes if md.norm <= 1e-6]
-        n_candidates = sum(self.M_radial_max for _ in range(self.N_angular_max + 1))
+        if self.truncation == "eigenvalue":
+            n_candidates = self.truncation_info["n_zeros"]
+        else:
+            n_candidates = sum(self.M_radial_max
+                               for _ in range(self.N_angular_max + 1))
         self.mode_ledger = dict(
             basis="BesselBasis", candidates=n_candidates, constructed=constructed,
             dedup_dropped=self._last_dedup_dropped,
@@ -71,10 +87,52 @@ class BesselBasis(EigenBasis):
         )
 
     # ── Eigenvalues = zeros of J_n ───────────────────────────────
+    def _zeros_by_order(self):
+        """[(n, zeros of J_n)] under the truncation rule in force."""
+        if self.truncation == "index":
+            self.truncation_info = None
+            return [(n, jn_zeros(n, self.M_radial_max))
+                    for n in range(self.N_angular_max + 1)]
+        if self.truncation != "eigenvalue":
+            raise ValueError(
+                f"unknown truncation {self.truncation!r}; expected 'index' or "
+                "'eigenvalue'"
+            )
+        lam1 = (jn_zeros(0, 1)[0] / self.R) ** 2
+        if self.lambda2_max is not None:
+            lam_cut, tau_min = float(self.lambda2_max), None
+        else:
+            tau_min = self.tau_min_frac * self.market.T
+            lam_cut = lam1 + (2.0 / tau_min) * np.log(1.0 / self.eps_trunc)
+        if lam_cut <= lam1:
+            raise ValueError(
+                f"cutoff Lambda = {lam_cut:.6g} is not above lambda_1^2 = "
+                f"{lam1:.6g}"
+            )
+        k_cut = self.R * np.sqrt(lam_cut)
+        out = []
+        n = 0
+        while True:
+            m = 8
+            zeros = jn_zeros(n, m)
+            while zeros[-1] < k_cut:
+                m *= 2
+                zeros = jn_zeros(n, m)
+            kept = zeros[zeros < k_cut]
+            if kept.size == 0:
+                break
+            out.append((n, kept))
+            n += 1
+        self.truncation_info = dict(
+            rule="eigenvalue", tau_min=tau_min, eps=float(self.eps_trunc),
+            lambda2_first=float(lam1), lambda2_cut=float(lam_cut),
+            n_max=n - 1, n_zeros=int(sum(z.size for _, z in out)),
+        )
+        return out
+
     def _build_modes(self):
         modes = []
-        for n in range(self.N_angular_max + 1):
-            zeros = jn_zeros(n, self.M_radial_max)
+        for n, zeros in self._zeros_by_order():
             for m, j_nm in enumerate(zeros, start=1):
                 k_sq = (j_nm / self.R) ** 2
                 # Even cosine mode always exists

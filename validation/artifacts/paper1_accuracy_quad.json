@@ -88,15 +88,15 @@
   "doubled_quadrature": [
     {
       "config": "default",
-      "price": 18.98997412971994,
-      "price_doubled": 18.99031646453465,
-      "rel_change": 1.8027134337963326e-05
+      "price": 18.989973985990375,
+      "price_doubled": 18.990316320806013,
+      "rel_change": 1.8027134523234273e-05
     },
     {
       "config": "tight_barrier",
-      "price": 4.436741394691885,
-      "price_doubled": 4.436782099275364,
-      "rel_change": 9.1744322821324e-06
+      "price": 4.436741394691852,
+      "price_doubled": 4.436782099275333,
+      "rel_change": 9.174432282532841e-06
     },
     {
       "config": "mahalanobis",
@@ -124,8 +124,8 @@
     }
   ],
   "provenance": {
-    "commit": "8290625",
-    "timestamp_utc": "2026-10-27T18:28:57.017189+00:00",
+    "commit": "bd325db",
+    "timestamp_utc": "2026-11-13T19:06:54.131305+00:00",
     "python": "3.11.9",
     "numpy": "2.4.2",
     "scipy": "1.17.1",

@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software and the associated paper."
+title: "Spectral-Two-Asset-Knockout: geometry-adapted spectral pricing of two-asset knockout options"
+abstract: >-
+  Spectral eigenfunction pricing of two-asset European knockout options under
+  constant-coefficient Black-Scholes dynamics, with Fourier-Galerkin, Bessel and
+  Mathieu bases, finite-difference and Monte Carlo benchmarks, and the validation
+  scripts and stored results behind the tables and figures of the associated paper.
+version: "1.0"
+date-released: 2026-11-15
+license: Apache-2.0
+repository-code: "https://github.com/AlvinYadav/Spectral-Two-Asset-Knockout"
+authors:
+  - family-names: "Yadav"
+    given-names: "Alvin"
+    email: "yadavalvin77@gmail.com"
+    affiliation: "School of Science, Constructor University, Bremen, Germany"
+  - family-names: "Petrat"
+    given-names: "Sören"
+    affiliation: "School of Science, Constructor University, Bremen, Germany"
+keywords:
+  - "barrier options"
+  - "multi-asset options"
+  - "Greeks"
+  - "spectral methods"
+  - "Mathieu functions"
+  - "eigenfunction expansion"
+references:
+  - type: unpublished
+    title: "Geometry-Adapted Spectral Pricing of Two-Asset Knockout Options"
+    authors:
+      - family-names: "Yadav"
+        given-names: "Alvin"
+      - family-names: "Petrat"
+        given-names: "Sören"
+    year: 2026
+    notes: "Preprint."

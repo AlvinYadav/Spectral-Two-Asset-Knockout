@@ -23,6 +23,14 @@ R = 0.5           # Knockout radius in log-return space: x₁² + x₂² > R²
 mathieu_backend   = "tridiagonal"
 projection_method = "galerkin"
 smooth_tau_frac   = 0.0
+# ── Truncation ──
+# Keep every mode with lambda^2 < Lambda = lambda_1^2 + (2/tau_min) ln(1/eps),
+# tau_min = tau_min_frac * T. The scan runs to q = c^2 Lambda / 4; the index
+# limits below (N_angular_max, M_radial_max, q_max, q_scan_points) apply only
+# with truncation = "index", the earlier rule.
+truncation   = "eigenvalue"
+tau_min_frac = 0.25
+eps_trunc    = 1e-6
 N_trunc        = 50    # Fourier truncation order for Mathieu functions
 N_angular_max  = 8     # Maximum angular Mathieu order (n = 0..N)
 M_radial_max   = 5     # Maximum radial roots per angular order

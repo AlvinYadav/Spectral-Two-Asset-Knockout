@@ -42,6 +42,9 @@ class SpectralSolver:
     _fit_done: bool = False
     _proj_info: dict = None
     _projection_geometry_cache: tuple = None
+    # Galerkin coefficients of the unit payoff on the fitted basis (first-
+    # passage quantities); filled on first use, cleared by a new fit.
+    _unit_cache: tuple = None
 
     # ── Setup ────────────────────────────────────────────────────
     def fit(self):
@@ -49,6 +52,7 @@ class SpectralSolver:
             self.basis.fit(self.market, self.domain)
             self._fit_done = True
             self._projection_geometry_cache = None
+            self._unit_cache = None
         return self
 
     def project(self, *, reuse_design: bool = False):
@@ -132,8 +136,12 @@ class SpectralSolver:
             w = self._projection_row_weights(n_pts)
             coeffs = A.T @ (w * b)
             rank = A.shape[1]
-            cond = float("nan")   # no least-squares system is solved
+            cond = float("nan")
+            # ||g~||^2 and sum c_n^2 on the same grid, for `truncation_bound`.
+            norm_info = dict(g_norm_sq=float(w @ (b * b)),
+                             coef_sq_sum=float(coeffs @ coeffs))   # no least-squares system is solved
         else:
+            norm_info = {}
             if method == "weighted":
                 sqrt_w = np.sqrt(self._projection_row_weights(n_pts))
                 A_fit = A * sqrt_w[:, None]
@@ -162,6 +170,7 @@ class SpectralSolver:
             smooth_tau=float(smooth_tau),
             smoothing=bool(self.smooth),
             method=method,
+            **norm_info,
         )
         return self._proj_info
 
@@ -369,6 +378,13 @@ class SpectralSolver:
                 v = getattr(self.basis, f.name)
                 if isinstance(v, (int, float, str, bool)):
                     kw[f.name] = v
+            # Eigenvalue truncation: the bumped bases keep this basis's
+            # cutoff, so both sides of each central difference are truncated
+            # at the same Lambda.
+            info = getattr(self.basis, "truncation_info", None)
+            if (info and info.get("rule") == "eigenvalue"
+                    and kw.get("lambda2_max") is None):
+                kw["lambda2_max"] = float(info["lambda2_cut"])
             return type(self.basis)(**kw)
 
         def price_at(reuse_basis=False, **market_kw):
@@ -511,6 +527,129 @@ class SpectralSolver:
         e2 = 0.01 * S2
         g2 = (self.price(S1, S2+e2, t) - 2*V + self.price(S1, S2-e2, t)) / e2**2
         return g1, g2
+
+    # ── Truncation bound ─────────────────────────────────────────
+    def _cutoff(self) -> float:
+        info = getattr(self.basis, "truncation_info", None)
+        if not info or info.get("rule") != "eigenvalue":
+            raise ValueError(
+                "requires a Mathieu or Bessel basis fitted with "
+                "truncation='eigenvalue'"
+            )
+        return float(info["lambda2_cut"])
+
+    def truncation_bound(self, S1=None, S2=None, tau=None) -> float:
+        """Bound on |V - V_N| from the omitted modes:
+
+            |V - V_N| <= e^(beta.x + gamma tau) sqrt(e Lambda / (4 pi))
+                         * exp(-Lambda tau / 2) * ||(I - P_N) g~||,
+            ||(I - P_N) g~||^2 = ||g~||^2 - sum_n c_n^2   (L2(Omega, dz)),
+
+        valid for tau >= 1/Lambda when the retained set holds every mode with
+        lambda^2 < Lambda (split the semigroup at 1/Lambda, spectral gap on
+        the first part, killed heat kernel p(z, z, 2t) <= 1/(4 pi t) on the
+        second). Both norms are taken on the projection grid, so the bound
+        does not cover quadrature error. Needs the Galerkin projection
+        without pre-smoothing.
+        """
+        if self._proj_info is None:
+            self.project()
+        lam = self._cutoff()
+        info = self._proj_info
+        if info.get("method") != "galerkin" or self.smooth_tau != 0.0:
+            raise ValueError(
+                "truncation_bound needs the Galerkin projection of the raw "
+                "payoff (projection_method='galerkin', no smoothing)"
+            )
+        S1 = self.market.S1_0 if S1 is None else S1
+        S2 = self.market.S2_0 if S2 is None else S2
+        tau = self.market.T if tau is None else float(tau)
+        if tau < 1.0 / lam:
+            raise ValueError(
+                f"the bound holds for tau >= 1/Lambda = {1.0 / lam:.3g}"
+            )
+        tail = np.sqrt(max(info["g_norm_sq"] - info["coef_sq_sum"], 0.0))
+        gauge = self.market.gauge_factor(S1, S2, tau)
+        return float(gauge * np.sqrt(np.e * lam / (4.0 * np.pi))
+                     * np.exp(-0.5 * lam * tau) * tail)
+
+    # ── First-passage quantities ─────────────────────────────────
+    # With c1_n the coefficients of the unit payoff g = 1 (that is of
+    # g~ = exp(-beta.log S)) and A_n = exp(beta.log S) c1_n Psi_n(z) / ||Psi_n||
+    # at the spot,
+    #     kappa_n = lambda_n^2 / 2 - gamma - r   (= lambda_n^2/2 + beta'Sigma beta/2)
+    #     survival   S(tau) = sum A_n exp(-kappa_n tau) = exp(r tau) V1(tau)
+    #     density    f(tau) = sum kappa_n A_n exp(-kappa_n tau) = -dS/dtau
+    #     hazard     h(tau) = f / S  ->  kappa_1
+    #     rebate 1 paid at the hit, by parts so the slowly convergent
+    #     expansion of g~ at tau = 0 never enters:
+    #         B(T) = 1 - exp(-rT) S(T) - r sum A_n (1 - exp(-omega_n T)) / omega_n,
+    #         omega_n = kappa_n + r.
+    # Accurate for tau >= tau_min of
+    # the eigenvalue cutoff; Galerkin projection on the fitted basis.
+    def _unit_projection(self):
+        if self._unit_cache is None:
+            self.fit()
+            S1a, S2a = self.basis.collocation_grid_spot()
+            A_full = self.basis.design_matrix_at_spot(S1a, S2a)
+            active_idx = [k for k, md in enumerate(self.basis.modes)
+                          if md.norm > 1e-6]
+            w = self._projection_row_weights(len(S1a))
+            b1 = 1.0 / self.market.gauge_factor(S1a, S2a, 0.0)
+            c1 = A_full[:, active_idx].T @ (w * b1)
+            k_sq = np.array([self.basis.modes[k].k_sq for k in active_idx])
+            self._unit_cache = (active_idx, c1, k_sq)
+        return self._unit_cache
+
+    def _unit_terms(self, S1, S2):
+        """(A_n, kappa_n) at a spot; A_n = 0 outside the domain."""
+        active_idx, c1, k_sq = self._unit_projection()
+        m = self.market
+        S1 = m.S1_0 if S1 is None else S1
+        S2 = m.S2_0 if S2 is None else S2
+        kappa = 0.5 * k_sq - m.gamma - m.r
+        if not self._inside(S1, S2):
+            return np.zeros_like(c1), kappa
+        modes = self.basis.modes
+        psi = np.array([self.basis.psi_at_spot(modes[k], S1, S2) / modes[k].norm
+                        for k in active_idx])
+        return m.gauge_factor(S1, S2, 0.0) * c1 * psi, kappa
+
+    def survival(self, S1=None, S2=None, tau=None) -> float:
+        """Probability that the barrier is not reached within tau."""
+        tau = self.market.T if tau is None else float(tau)
+        A, kappa = self._unit_terms(S1, S2)
+        return float(np.sum(A * np.exp(-kappa * tau)))
+
+    def exit_density(self, S1=None, S2=None, tau=None) -> float:
+        """Density of the first exit time at tau, -dS/dtau."""
+        tau = self.market.T if tau is None else float(tau)
+        A, kappa = self._unit_terms(S1, S2)
+        return float(np.sum(kappa * A * np.exp(-kappa * tau)))
+
+    def hazard(self, S1=None, S2=None, tau=None) -> float:
+        """Knock-out hazard rate f / S at tau."""
+        tau = self.market.T if tau is None else float(tau)
+        A, kappa = self._unit_terms(S1, S2)
+        e = np.exp(-kappa * tau)
+        return float(np.sum(kappa * A * e) / np.sum(A * e))
+
+    def rebate_at_hit(self, S1=None, S2=None, T=None, rebate: float = 1.0) -> float:
+        """Value of `rebate` paid at the first hit if it occurs before T."""
+        m = self.market
+        T = m.T if T is None else float(T)
+        A, kappa = self._unit_terms(S1, S2)
+        omega = kappa + m.r
+        surv_T = np.sum(A * np.exp(-kappa * T))
+        tail = np.sum(A * -np.expm1(-omega * T) / omega)
+        return float(rebate * (1.0 - np.exp(-m.r * T) * surv_T - m.r * tail))
+
+    def long_run_hazard(self) -> float:
+        """kappa_1 = lambda_1^2 / 2 + beta'Sigma beta / 2, the limit of the
+        hazard rate as tau grows."""
+        self.fit()
+        lam1 = min(md.k_sq for md in self.basis.modes if md.norm > 1e-6)
+        return float(0.5 * lam1 - self.market.gamma - self.market.r)
 
     # ── Diagnostics ──────────────────────────────────────────────
     def n_modes(self) -> int:

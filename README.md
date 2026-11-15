@@ -14,6 +14,11 @@ exponential factor, so the price and its spot Greeks at any spot are a finite su
 Finite differences in whitened coordinates (Crank–Nicolson with Shortley–Weller
 boundaries) and bridge-corrected Monte Carlo are included as independent benchmarks.
 
+## License and citation
+
+Released under the Apache License 2.0 (`LICENSE`). To cite the software and the
+paper, use `CITATION.cff` (GitHub's "Cite this repository" button reads it).
+
 ## Installation
 
 Python 3.11 or later.
@@ -51,7 +56,7 @@ twoasset/
 legacy/                      SciPy-based Mathieu functions, kept for comparison
 configs/                     The six contracts and the sealed holdouts
 validation/                  Scripts behind the paper's tables, and their outputs
-figures/                     Scripts for Figures 2.1 and 3.1, and an earlier cost figure
+figures/                     Scripts for Figures 2.1, 3.1, 6.2 and 6.3
 tests/                       Tests
 ```
 
@@ -67,6 +72,7 @@ Run the scripts from the repository root with `PYTHONPATH=.`. Data are written t
 |---|---|---|
 | Figure 2.1 | `figures/geometry_x_to_z.py` | `p1_geometry_x_to_z.pdf` in the working directory |
 | Figure 3.1 | `figures/elliptic_grid.py` | `p1_elliptic_grid.pdf` in the working directory |
+| Truncation bound (2.11) and the eigenvalue cutoff (Sections 2.5, 3.2 and 3.3) | `tests/test_eigenvalue_cutoff.py` | — |
 | Remark 3.1 | `validation/paper1_scipy_mathieu.py` | `paper1_scipy_mathieu.json` |
 | Quadrature refinement (Sections 3.4 and 6.5) | `validation/paper1_accuracy_checks.py quad` | `paper1_accuracy_quad.json` |
 | Finite-difference benchmark (Section 5.1): disc, M-matrix, space and time refined separately, Cholesky against eigen whitening | `validation/paper1_zfdm.py z1 z2 sep levels` | `paper1_zfdm_<section>.json` |
@@ -81,8 +87,10 @@ Run the scripts from the repository root with `PYTHONPATH=.`. Data are written t
 | Spread call with `K = 0` against Margrabe (Remark 6.1) | `validation/paper1_accuracy_checks.py margrabe` | `paper1_accuracy_margrabe.json` |
 | Truncated domain of the worst-of call (Remark 6.1) | `validation/paper1_onefactor.py truncation` | `paper1_onefactor_truncation.json` |
 | Table 6.2 (spectral rows), Figure 6.1 | `validation/paper1_greeks.py` | `paper1_greeks.json` |
+| Remark 4.1 and the survival probability and hazard rate (Section 6.2) | `validation/paper1_survival.py`, gated by `tests/test_survival_cutoff.py` | `paper1_survival.json` |
 | Table 6.2 (finite-difference rows), fixed-barrier vegas (Section 6.2) | `validation/paper1_zfdm.py levels xgreeks market xmarket` | `paper1_zfdm_<section>.json` |
-| Table 6.3 | `validation/paper1_cost2.py run`, then `matched`, then `report` | `paper1_cost2.json`, `paper1_cost2_matched.json`, `paper1_cost2_report.json` |
+| Table 6.3 | `validation/paper1_cost2.py run` (or `spectral` to re-time only the spectral side), then `matched`, `memo` and `report`; Monte Carlo times from `validation/<contract>.toml` | `paper1_cost2.json`, `paper1_cost2_matched.json`, `paper1_cost2_memo.json`, `paper1_cost2_report.json` |
+| Figures 6.2 and 6.3 | `validation/paper1_cost2.py workprec`, then `figures/cost.py` (after the Table 6.3 runs) | `paper1_cost2_workprec.json`; `p1_cost_tasks.pdf`, `p1_cost_accuracy.pdf` |
 | Table 6.4 | `validation/paper1_evidence.py`; finite-difference column from `paper1_zfdm.py levels xgreeks` | `paper1_evidence.json` |
 | Table 6.5 | `python -m twoasset.projection_comparison` | `validation/projection_comparison.json` |
 | Table 6.6 | `python -m twoasset.holdout_eval` | `validation/holdout_rerun.json` |
@@ -91,7 +99,7 @@ Run the scripts from the repository root with `PYTHONPATH=.`. Data are written t
 | The maturity T/4 against finite differences (Section 6.6) | `validation/paper1_zfdm.py short` | `paper1_zfdm_short.json` |
 | Rectangle gammas against finite differences (Section 6.6) | `validation/paper1_accuracy_checks.py conv_fd <contract>` | `paper1_accuracy_conv_fd_<contract>.json`, and `..._T.json` on the rectangles |
 | Modes per side on the rectangles (Section 6.6) | `validation/paper1_accuracy_checks.py conv_modes` | `paper1_accuracy_conv_modes.json` |
-| Table A.2 | `tests/test_mathieu_backend.py` | — |
+| Table A.2 | `tests/test_mathieu_backend.py`; every retained order and root of the production bases in `tests/test_eigenvalue_cutoff.py` | — |
 
 Further evidence that the paper does not report:
 
@@ -99,7 +107,7 @@ Further evidence that the paper does not report:
 |---|---|---|
 | One numerical setting at a time | `validation/paper1_onefactor.py onefactor` | `paper1_onefactor_onefactor.json` |
 | Long-maturity decay rate | `validation/paper1_decay.py` | `paper1_decay.json` |
-| Earlier versions of the benchmark: ADI against Crank–Nicolson, random grid placement, time-step refinement, the earlier cost tables | `validation/adi_vs_cn_bench.py`, `validation/paper1_fdm_shift.py`, `validation/paper1_accuracy_checks.py timestep conv_angular vega_fixed`, `validation/paper1_market_cost.py`, `figures/cost.py` | as named in each script |
+| Earlier versions of the benchmark: ADI against Crank–Nicolson, random grid placement, time-step refinement, the earlier cost tables | `validation/adi_vs_cn_bench.py`, `validation/paper1_fdm_shift.py`, `validation/paper1_accuracy_checks.py timestep conv_angular vega_fixed`, `validation/paper1_market_cost.py` | as named in each script |
 
 The stored Monte Carlo runs of each contract, and the earlier bump-and-revalue
 finite-difference Greeks, are in `validation/<contract>.toml`.

@@ -11,6 +11,10 @@ import tomllib
 
 ROOT = Path(__file__).parent.parent
 GOLDEN_PATH = ROOT / "tests" / "golden" / "level0_prices.json"
+# Snapshot of the production curved-barrier bases under the eigenvalue cutoff;
+# level0_prices.json keeps the index-rule snapshot.
+EIGEN_GOLDEN_PATH = ROOT / "tests" / "golden" / "level0_prices_eigenvalue.json"
+CURVED = ("default", "tight_barrier", "mahalanobis")
 
 OPTIMAL = {
     "default":       {"smooth_tau": 0.000, "N_modes": 25},
@@ -28,7 +32,7 @@ def golden():
         return json.load(f)
 
 
-def _run_config(cfg_name: str, optimal: dict):
+def _run_config(cfg_name: str, optimal: dict, truncation: str = "index"):
     from twoasset.cli import assemble
     from twoasset.solvers.spectral import SpectralSolver
     from twoasset.solvers.validate import pde_residual
@@ -42,6 +46,11 @@ def _run_config(cfg_name: str, optimal: dict):
     cfg2 = copy.deepcopy(cfg)
     cfg2.setdefault("spectral", {})["N_modes"] = N_modes
     cfg2["spectral"]["N_quad"] = N_quad
+    # The golden snapshot records the curved-barrier bases under the index
+    # truncation (n <= 8 with five Mathieu or six Bessel roots); the production
+    # configs use the eigenvalue cutoff (tests/test_eigenvalue_cutoff.py).
+    if "numerical" in cfg2:
+        cfg2["numerical"]["truncation"] = truncation
 
     smooth_tau = optimal["smooth_tau"]
     from twoasset.cli import assemble_solver
@@ -123,3 +132,26 @@ def test_pde_residual_unchanged(cfg_name, golden):
     assert abs(rel - golden_rel) < 0.05 * max(golden_rel, 1e-9), (
         f"{cfg_name}: pde_rel={rel:.4e} golden={golden_rel:.4e}"
     )
+
+
+# ── Production curved bases (eigenvalue cutoff) against their own snapshot ─────
+
+@pytest.fixture(scope="module")
+def golden_eigen():
+    with open(EIGEN_GOLDEN_PATH) as f:
+        return json.load(f)
+
+
+@pytest.mark.parametrize("cfg_name", CURVED)
+def test_eigenvalue_snapshot_unchanged(cfg_name, golden_eigen):
+    """Price, active-mode count and PDE residual of the production curved bases
+    (truncation = "eigenvalue") against level0_prices_eigenvalue.json, with the
+    tolerances of the index-rule tests above."""
+    price, rel, _, extras = _run_config(cfg_name, OPTIMAL[cfg_name],
+                                        truncation="eigenvalue")
+    g = golden_eigen[cfg_name]
+    assert extras["solver"].basis.truncation == "eigenvalue"
+    assert len(extras["solver"].basis.active_modes()) == g["n_active"]
+    assert abs(price - g["price"]) < 1e-10 * max(abs(g["price"]), 1), (
+        f"{cfg_name}: price={price:.12g} golden={g['price']:.12g}")
+    assert abs(rel - g["pde_relative"]) < 0.05 * max(g["pde_relative"], 1e-9)

@@ -37,6 +37,21 @@ def detect_problem(cfg: dict) -> str:
     return "elliptical"
 
 
+def _truncation_kwargs(num: dict, *, mathieu: bool = False) -> dict:
+    """Truncation-rule keys of [numerical] for the curved-barrier bases.
+
+    A config without `truncation` keeps the earlier index rule, so frozen and
+    sealed configs reproduce their records; production configs select
+    `truncation = "eigenvalue"`."""
+    kw = dict(truncation=num.get("truncation", "index"),
+              tau_min_frac=num.get("tau_min_frac", 0.25),
+              eps_trunc=num.get("eps_trunc", 1e-6),
+              lambda2_max=num.get("lambda2_max", None))
+    if mathieu:
+        kw["q_scan_density"] = num.get("q_scan_density", 15.0)
+    return kw
+
+
 def assemble(cfg: dict):
     """Return (market, payoff, domain, basis, numerical_cfg)."""
     fin = cfg["financial"]
@@ -61,6 +76,7 @@ def assemble(cfg: dict):
             N_mu_quad=num.get("N_mu_quad", 40),
             N_nu_quad=num.get("N_nu_quad", 96),
             backend=num.get("mathieu_backend", "scipy"),
+            **_truncation_kwargs(num, mathieu=True),
         )
         return market, payoff, domain, basis, kind
 
@@ -76,6 +92,7 @@ def assemble(cfg: dict):
             M_radial_max=num.get("M_radial_max", 6),
             N_r_quad=num.get("N_r_quad", 40),
             N_theta_quad=num.get("N_theta_quad", 96),
+            **_truncation_kwargs(num),
         )
         return market, payoff, domain, basis, kind
 

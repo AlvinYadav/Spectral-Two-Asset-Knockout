@@ -140,7 +140,10 @@ def cost_one(name):
 
     t0 = _pc(); price = solver.price(); t_price_first = _pc() - t0
     gold = GOLDEN[name]["price"]
-    if abs(price - gold) > 1e-10 * max(abs(gold), 1.0):
+    # The golden records the index truncation; under the eigenvalue cutoff the price
+    # agrees with it far below the printed digits (tests/test_eigenvalue_cutoff.py).
+    tol = 1e-7 if getattr(solver.basis, "truncation", "index") == "eigenvalue" else 1e-10
+    if abs(price - gold) > tol * max(abs(gold), 1.0):
         raise SystemExit(f"{name}: price {price!r} does not reproduce golden {gold!r}")
 
     t0 = _pc(); g_spot = solver.greeks(); t_greeks_first_at_spot = _pc() - t0
@@ -293,21 +296,31 @@ def converge():
     return out
 
 
+def _merge(old, new):
+    """Replace the rows of `old` whose config is in `new`, keeping the order."""
+    by = {r["config"]: r for r in new}
+    out = [by.pop(r["config"], r) for r in old]
+    return out + list(by.values())
+
+
 def main(argv):
-    parts = set(argv) or {"cost", "strong", "converge"}
+    names = [a for a in argv if a in ALL_CONFIGS] or list(ALL_CONFIGS)
+    parts = {a for a in argv if a not in ALL_CONFIGS} or {"cost", "strong", "converge"}
     data = json.loads(OUT.read_text()) if OUT.exists() else {}
     solvers = {}
     if "cost" in parts:
         mathieu_basis._ROOT_CACHE = _NoRootMemo()
         rows = []
-        for name in ALL_CONFIGS:
+        for name in names:
             row, solver = cost_one(name)
             rows.append(row)
             solvers[name] = solver
-        data["cost"] = rows
+        data["cost"] = _merge(data.get("cost", []), rows)
     if "strong" in parts:
-        data["strong"] = [strong_one(n, solvers.get(n)) for n in ALL_CONFIGS]
-        data["rho_sweep"] = rho_sweep()
+        data["strong"] = _merge(data.get("strong", []),
+                                [strong_one(n, solvers.get(n)) for n in names])
+        if names == list(ALL_CONFIGS):
+            data["rho_sweep"] = rho_sweep()
     if "converge" in parts:
         data["converge"] = converge()
     if "modes" in parts:

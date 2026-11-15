@@ -22,9 +22,13 @@ spectral price error (see the section below).
 
 Run (repo root):  PYTHONPATH=. .venv/bin/python3 validation/paper1_cost2.py run [CONFIG ...]
                   PYTHONPATH=. .venv/bin/python3 validation/paper1_cost2.py matched [CONFIG ...]
+                  PYTHONPATH=. .venv/bin/python3 validation/paper1_cost2.py memo [CONFIG ...]
+                  PYTHONPATH=. .venv/bin/python3 validation/paper1_cost2.py workprec [CONFIG ...]
                   PYTHONPATH=. .venv/bin/python3 validation/paper1_cost2.py report
 Writes:           validation/artifacts/paper1_cost2.json (run, per contract, merged)
                   validation/artifacts/paper1_cost2_matched.json (matched)
+                  validation/artifacts/paper1_cost2_memo.json (memo: Mathieu, root memo on)
+                  validation/artifacts/paper1_cost2_workprec.json (workprec: FD error vs cost)
                   validation/artifacts/paper1_cost2_report.json (report)
 """
 from __future__ import annotations
@@ -352,6 +356,23 @@ def run(names):
         print(f"   done in {_pc() - t0:.0f}s", flush=True)
 
 
+def run_spectral(names):
+    """Re-time the spectral side of `run` and keep the stored FD rows (after a change
+    to the spectral method that leaves the FD solver untouched)."""
+    mathieu_basis._ROOT_CACHE = _NoRootMemo()
+    data = json.loads(OUT.read_text())
+    data["hardware"] = _hardware()
+    for name in names:
+        print(f"[cost2 spectral] {name}", flush=True)
+        t0 = _pc()
+        spec = spectral_costs(name)
+        data["rows"][name]["spectral"] = spec
+        data["rows"][name]["spectral_retimed"] = build_provenance(section="cost2s")
+        print(f"   spectral cold {spec['cold']['median']:.3f}s market "
+              f"{spec['market_greeks']['median']:.2f}s ({_pc() - t0:.0f}s)", flush=True)
+        OUT.write_text(json.dumps(data, indent=2, default=float))
+
+
 # ═══════════════════════════════════════════════════════════════════════
 #  matched: one FD solve on the coarsest grid that matches the spectral price
 # ═══════════════════════════════════════════════════════════════════════
@@ -367,6 +388,7 @@ def run(names):
 MATCHED = ART / "paper1_cost2_matched.json"
 Z_SCAN = tuple(range(320, 90, -10))         # m, steps from the centre to the box edge
 X_SCAN = tuple(range(320, 30, -20))         # N, grid points per axis
+X_SCAN_FINE = tuple(range(640, 320, -20))   # fallback above N = 320 (worst-of)
 
 
 def _nt(curved, level):
@@ -425,20 +447,32 @@ def matched(names):
         curved = name in CURVED
         market, payoff, domain = _contract(name)
         ref, spec_err, ref_e = refs[name]
-        scan, level = [], None
-        for lev in (Z_SCAN if curved else X_SCAN):
-            vals = _fd_spot_values(name, market, payoff, domain, lev)
-            err = {k: (vals[k] - ref[k]) / ref[k] for k in KEYS}
-            ok = abs(err["price"]) <= abs(spec_err["price"])
-            scan.append(dict(level=lev, N_time=_nt(curved, lev), rel_err=err, matches=ok))
-            print(f"[matched {name}] level {lev}: price error {err['price']:+.2e} "
-                  f"(spectral {spec_err['price']:+.2e}) {'ok' if ok else 'stop'}", flush=True)
-            if not ok:
-                break
-            level = lev
+        def scan_down(levels):
+            out, found = [], None
+            for lev in levels:
+                vals = _fd_spot_values(name, market, payoff, domain, lev)
+                err = {k: (vals[k] - ref[k]) / ref[k] for k in KEYS}
+                ok = abs(err["price"]) <= abs(spec_err["price"])
+                out.append(dict(level=lev, N_time=_nt(curved, lev), rel_err=err, matches=ok))
+                print(f"[matched {name}] level {lev}: price error {err['price']:+.2e} "
+                      f"(spectral {spec_err['price']:+.2e}) {'ok' if ok else 'stop'}",
+                      flush=True)
+                if not ok:
+                    break
+                found = lev
+            return out, found
+        scan, level = scan_down(Z_SCAN if curved else X_SCAN)
         row = dict(fd_method="z-space" if curved else "x-space", spectral_rel_err=spec_err,
                    reference_e_rel=ref_e, scan=scan, matched_level=level,
                    scan_exhausted=bool(scan and scan[-1]["matches"]))
+        if level is None and not curved:
+            # No grid up to N = 320 matches: scan again from the finest grid of the
+            # reference (N = 640) down to 340. N = 640 matches by construction (its error
+            # is the extrapolation step), so this grid is bounded by the reference itself.
+            fine, level = scan_down(X_SCAN_FINE)
+            scan = fine + scan
+            row.update(scan=scan, matched_level=level, scan_fine=X_SCAN_FINE,
+                       matched_on_fine_scan=level is not None)
         if level is not None:
             row["matched_N_time"] = _nt(curved, level)
             row["matched_rel_err"] = next(s["rel_err"] for s in scan if s["level"] == level)
@@ -456,6 +490,95 @@ def matched(names):
         rows[name] = row
         data["provenance"] = build_provenance(section="cost2m")
         MATCHED.write_text(json.dumps(data, indent=2, default=float))
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  memo: the Mathieu solve with the root memo on (the library default)
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Every cold timing above switches the memo off. Here it is on, as it is by default:
+# the first solve of an ellipse shape scans and stores its roots; any later solve whose
+# key matches (same mu_0 and scan settings) rebuilds its modes from them. The four
+# volatility bumps of the market Greeks change the shape, so their first call scans four
+# new shapes and later calls hit.
+
+MEMO = ART / "paper1_cost2_memo.json"
+
+
+def memo(names):
+    data = json.loads(MEMO.read_text()) if MEMO.exists() else {}
+    data["hardware"] = _hardware()
+    data["protocol"] = dict(repeats=REPEATS, warmup=1, threads=1, root_memo="on")
+    rows = data.setdefault("rows", {})
+    for name in names:
+        mathieu_basis._ROOT_CACHE = {}
+        try:
+            _c, s = build(name)
+            t0 = _pc(); s.fit(); s.project(); t_first = _pc() - t0     # scans, fills the memo
+            m = s.market
+            hits = []
+
+            def scratch():
+                _c2, s2 = build(name)
+                s2.fit(); s2.project(); s2.greeks()
+                hits.append(bool(s2.basis._root_cache_hit))
+            from_scratch = _repeat(scratch)
+            t0 = _pc(); s._market_greeks(m.S1_0, m.S2_0, 0.0); t_mg_first = _pc() - t0
+            mg = _repeat(lambda: s._market_greeks(m.S1_0, m.S2_0, 0.0), 3)
+            rows[name] = dict(first_solve_scans_s=t_first, all_hits=all(hits),
+                              price_and_spot_greeks_from_scratch=from_scratch,
+                              market_greeks_first_call_s=t_mg_first,
+                              market_greeks_memo=mg, memo_entries=len(mathieu_basis._ROOT_CACHE))
+            print(f"[memo {name}] first solve {t_first:.2f}s; from scratch "
+                  f"{from_scratch['median']:.3f}s (hits {all(hits)}); market Greeks first "
+                  f"{t_mg_first:.1f}s, then {mg['median']:.2f}s", flush=True)
+        finally:
+            mathieu_basis._ROOT_CACHE = _NoRootMemo()
+        data["provenance"] = build_provenance(section="cost2memo")
+        MEMO.write_text(json.dumps(data, indent=2, default=float))
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  workprec: price error against the cost of one FD solve, over grids
+# ═══════════════════════════════════════════════════════════════════════
+
+WORKPREC = ART / "paper1_cost2_workprec.json"
+WP_Z = (40, 60, 80, 120, 160, 240, 320)
+WP_X = (40, 60, 80, 120, 160, 240, 320, 480, 640)
+
+
+def workprec(names):
+    refs = _references()
+    data = json.loads(WORKPREC.read_text()) if WORKPREC.exists() else {}
+    data["hardware"] = _hardware()
+    data["protocol"] = dict(warmup=1, repeats="3 below 5 s, else 1", threads=1,
+                            timed="one solve with the price and spot Greeks read from it")
+    rows = data.setdefault("rows", {})
+    for name in names:
+        curved = name in CURVED
+        market, payoff, domain = _contract(name)
+        ref, spec_err, _e = refs[name]
+        pts = []
+        base = set(WP_Z if curved else WP_X)
+        if MATCHED.exists():                     # the matched grid joins the curve
+            lev_m = json.loads(MATCHED.read_text())["rows"].get(name, {}).get("matched_level")
+            if lev_m:
+                base.add(lev_m)
+        for lev in sorted(base):
+            walls = []
+            vals = _fd_spot_values(name, market, payoff, domain, lev, walls)   # warm-up
+            reps = 3 if walls[0]["total_s"] < 5.0 else 1
+            ts = []
+            for _ in range(reps):
+                t0 = _pc(); _fd_spot_values(name, market, payoff, domain, lev); ts.append(_pc() - t0)
+            err = {k: (vals[k] - ref[k]) / ref[k] for k in KEYS}
+            pts.append(dict(level=lev, N_time=_nt(curved, lev), seconds=_stats(ts), rel_err=err))
+            print(f"[workprec {name}] {lev}: {pts[-1]['seconds']['median']:.3f}s, "
+                  f"price error {err['price']:+.2e}", flush=True)
+        rows[name] = dict(fd_method="z-space" if curved else "x-space",
+                          spectral_rel_err=spec_err, levels=pts)
+        data["provenance"] = build_provenance(section="cost2wp")
+        WORKPREC.write_text(json.dumps(data, indent=2, default=float))
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -583,8 +706,14 @@ if __name__ == "__main__":
     cmd, *names = sys.argv[1:]
     if cmd == "run":
         run(names or list(ALL_CONFIGS))
+    elif cmd == "spectral":
+        run_spectral(names or list(CURVED))
     elif cmd == "matched":
         matched(names or list(ALL_CONFIGS))
+    elif cmd == "memo":
+        memo(names or list(CURVED[:2]))
+    elif cmd == "workprec":
+        workprec(names or list(ALL_CONFIGS))
     elif cmd == "report":
         report()
     else:

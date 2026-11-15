@@ -407,6 +407,65 @@ def radial_value_deriv2(solver: MathieuAngularTridiagonal, n: int, parity: str,
     return val, dval, ddval
 
 
+def _cross_terms_vec(Ja, dJa, ddJa, Jb, dJb, ddJb, u1, u2):
+    """`_cross_term_deriv2` on arrays: rows are series terms, columns points."""
+    val = Ja * Jb
+    dval = -u1 * dJa * Jb + u2 * Ja * dJb
+    ddval = (u1 ** 2) * ddJa * Jb + u1 * dJa * Jb \
+        - 2.0 * u1 * u2 * dJa * dJb \
+        + (u2 ** 2) * Ja * ddJb + u2 * Ja * dJb
+    return val, dval, ddval
+
+
+def radial_value_deriv2_vec(solver: MathieuAngularTridiagonal, n: int, parity: str,
+                            mu, q: float) -> tuple:
+    """`radial_value_deriv2` with the series summed by NumPy over its terms (and
+    over the points of an array `mu`) instead of a Python loop per term: the same
+    Bessel-product series, coefficients, J', J'' differences and normalisation
+    p = (-1)^j / c_0, so the two agree to rounding (summation order differs).
+    Used on the eigenvalue-cutoff path, whose bases are larger; the index path
+    keeps `radial_value_deriv2`, so its results stay bit-identical."""
+    cname, j = _locate(n, parity)
+    c = solver.coeffs_natural(cname, j)
+    K = len(c)
+    mu_arr = np.atleast_1d(np.asarray(mu, dtype=float))
+    u1 = np.sqrt(q) * np.exp(-mu_arr)
+    u2 = np.sqrt(q) * np.exp(mu_arr)
+    ks = np.arange(-2, K + 4)                       # orders -2 .. K+3
+    R1 = jv(ks[:, None], u1[None, :])
+    R2 = jv(ks[:, None], u2[None, :])
+
+    def table(R):                                   # orders 0 .. K+1
+        return (R[2:-2], 0.5 * (R[1:-3] - R[3:-1]),
+                0.25 * (R[0:-4] - 2.0 * R[2:-2] + R[4:]))
+
+    J1, dJ1, ddJ1 = table(R1)
+    J2, dJ2, ddJ2 = table(R2)
+    k = np.arange(K)
+
+    def cross(a, b):
+        return _cross_terms_vec(J1[a], dJ1[a], ddJ1[a], J2[b], dJ2[b], ddJ2[b], u1, u2)
+
+    if cname == "ce_even":
+        t = cross(k, k)
+    elif cname in ("ce_odd", "se_odd"):
+        t1, t2 = cross(k, k + 1), cross(k + 1, k)
+        sgn = 1.0 if cname == "ce_odd" else -1.0
+        t = tuple(a + sgn * b for a, b in zip(t1, t2))
+    elif cname == "se_even":
+        t1, t2 = cross(k, k + 2), cross(k + 2, k)
+        t = tuple(a - b for a, b in zip(t1, t2))
+    else:
+        raise ValueError(f"unknown class {cname!r}")
+    w = ((-1.0) ** k) * c
+    p = ((-1.0) ** j) / c[0]
+    val, dval, ddval = (p * (w @ x) for x in t)
+    if np.isscalar(mu) or np.asarray(mu).ndim == 0:
+        return float(val[0]), float(dval[0]), float(ddval[0])
+    shape = np.asarray(mu).shape
+    return val.reshape(shape), dval.reshape(shape), ddval.reshape(shape)
+
+
 def gate_G3_radial_ode_residual(q: float, n_max: int, mu0: float, *,
                                 n_mu: int = 60) -> dict:
     """||y'' - (a - 2q cosh2mu) y|| / scale < 1e-10 on mu in [0, mu0 + margin], per

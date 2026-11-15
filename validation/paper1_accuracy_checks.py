@@ -25,8 +25,8 @@ processes:
              barrier moving with the bumped covariance (as in Table 6.2) and
              with the barrier fixed at the base covariance;
   conv       the six contracts with one numerical setting refined at a time
-             (on the curved barriers angular order, radial roots, each direction
-             of the quadrature and the root scan; on the rectangles the modes
+             (on the curved barriers the eigenvalue cutoff and each direction
+             of the quadrature; on the rectangles the modes
              per side and the quadrature; on all, the gamma step and the bumps
              of the market Greeks), at the centre, 60% and 90% of the way to
              the barrier, and at tau = T and T/4;
@@ -409,39 +409,32 @@ MARKET_KEYS = ("vega1", "vega2", "rho")
 RECT_MODES = dict(dnt=(15, 30), worst_of=(24, 48), spread=(40, 60))
 
 
-def _conv_variants(name):
-    """Numerical settings refined or coarsened one at a time from production, as
-    keyword arguments of `build`. A sixth Mathieu radial root needs the scan range
-    raised from 350 to 400 (at the same 15 points per unit q), or four orders lose
-    their sixth root. On a rectangle the quadrature stays at its production size
-    when the modes change."""
+def _conv_variants(name, lam=None):
+    """Numerical settings refined one at a time from production, as keyword
+    arguments of `build`. On the curved barriers the cutoff Lambda of the production
+    basis (`lam`) is raised by half, and each direction of the quadrature is doubled.
+    On a rectangle the quadrature stays at its production size when the modes
+    change."""
     if name in RECTANGLES:
         n, q = OPTIMAL[name]["N_modes"], max(120, 4 * OPTIMAL[name]["N_modes"])
         return {**{f"modes {m}": dict(n_modes=m, n_quad=q) for m in RECT_MODES[name]},
                 "quadrature x2": dict(n_quad=2 * q),
                 "quadrature x4": dict(n_quad=4 * q)}
+    over = {"cutoff x1.5": dict(lambda2_max=1.5 * lam)}
     if name == "mahalanobis":
-        over = {"angular 6": dict(N_angular_max=6),
-                "angular 10": dict(N_angular_max=10),
-                "radial 5": dict(M_radial_max=5),
-                "radial 7": dict(M_radial_max=7),
-                "radial quadrature x2": dict(N_r_quad=80),
-                "angular quadrature x2": dict(N_theta_quad=192)}
+        over.update({"radial quadrature x2": dict(N_r_quad=80),
+                     "angular quadrature x2": dict(N_theta_quad=192)})
     else:
-        over = {"angular 6": dict(N_angular_max=6),
-                "angular 10": dict(N_angular_max=10),
-                "radial 4": dict(M_radial_max=4),
-                "radial 6": dict(M_radial_max=6, q_max=400.0, q_scan_points=6000),
-                "radial quadrature x2": dict(N_mu_quad=100),
-                "angular quadrature x2": dict(N_nu_quad=192),
-                "root scan x2": dict(q_scan_points=10500)}
+        over.update({"radial quadrature x2": dict(N_mu_quad=100),
+                     "angular quadrature x2": dict(N_nu_quad=192)})
     return {label: dict(overrides={"numerical": o}) for label, o in over.items()}
 
 
 def _mode_census(basis):
     """Modes per angular family; a family short of M_radial_max roots means the scan
     range did not hold all requested roots."""
-    if not hasattr(basis, "M_radial_max"):
+    if (not hasattr(basis, "M_radial_max")
+            or getattr(basis, "truncation", "index") == "eigenvalue"):
         return dict(n_modes=len(basis.modes), short_families=[])
     count = {}
     for md in basis.modes:
@@ -481,9 +474,13 @@ def _solver_at(solver, *, reuse_basis=False, **market_kw):
         basis.market = m
     else:
         fitted = ("modes", "market", "domain", "c_focal", "mu_0", "A_semi", "B_semi")
-        basis = type(b)(**{f.name: getattr(b, f.name) for f in fields(b)
-                           if f.name not in fitted and not f.name.startswith("_")
-                           and isinstance(getattr(b, f.name), (int, float, str, bool))})
+        kw = {f.name: getattr(b, f.name) for f in fields(b)
+              if f.name not in fitted and not f.name.startswith("_")
+              and isinstance(getattr(b, f.name), (int, float, str, bool))}
+        info = getattr(b, "truncation_info", None)
+        if info and info.get("rule") == "eigenvalue" and kw.get("lambda2_max") is None:
+            kw["lambda2_max"] = float(info["lambda2_cut"])   # as in _market_greeks
+        basis = type(b)(**kw)
     s = SpectralSolver(market=m, payoff=solver.payoff, domain=solver.domain, basis=basis,
                        smooth=solver.smooth, smooth_tau_frac=solver.smooth_tau_frac,
                        projection_method=solver.projection_method)
@@ -531,9 +528,12 @@ def section_conv(names=CURVED + RECTANGLES):
         pts = _spots(base)
         spots = [dict(index=k, x1=pts[k][0], x2=pts[k][1], fraction=pts[k][2],
                       angle_deg=pts[k][3]) for k in CONV_SPOTS]
+        base.fit()
+        info = getattr(base.basis, "truncation_info", None)
+        lam = info["lambda2_cut"] if info else None
 
         variants = {}
-        for label, kw in {"production": {}, **_conv_variants(name)}.items():
+        for label, kw in {"production": {}, **_conv_variants(name, lam)}.items():
             t0 = time.perf_counter()
             s = base if not kw else build(name, **kw)
             s.fit()

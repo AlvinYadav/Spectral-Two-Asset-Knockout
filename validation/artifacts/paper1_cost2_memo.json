@@ -1,0 +1,74 @@
+{
+  "hardware": {
+    "chip": "Apple M1",
+    "memory_bytes": "8589934592",
+    "os": "macOS-26.5.2-arm64-arm-64bit",
+    "python": "3.11.9",
+    "numpy": "2.4.2",
+    "scipy": "1.17.1",
+    "blas": "accelerate",
+    "threads": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1"
+    }
+  },
+  "protocol": {
+    "repeats": 5,
+    "warmup": 1,
+    "threads": 1,
+    "root_memo": "on"
+  },
+  "rows": {
+    "default": {
+      "first_solve_scans_s": 3.753563624981325,
+      "all_hits": true,
+      "price_and_spot_greeks_from_scratch": {
+        "median": 1.272529875044711,
+        "iqr": 0.001749000046402216,
+        "n": 5,
+        "min": 1.270764374989085,
+        "max": 1.2746779590379447
+      },
+      "market_greeks_first_call_s": 15.873854958976153,
+      "market_greeks_memo": {
+        "median": 5.7901590000255965,
+        "iqr": 0.0096787289949134,
+        "n": 3,
+        "min": 5.780158667010255,
+        "max": 5.799516125000082
+      },
+      "memo_entries": 5
+    },
+    "tight_barrier": {
+      "first_solve_scans_s": 0.8350061669480056,
+      "all_hits": true,
+      "price_and_spot_greeks_from_scratch": {
+        "median": 0.260533457971178,
+        "iqr": 0.0010139580117538571,
+        "n": 5,
+        "min": 0.2599141250248067,
+        "max": 0.3754013750003651
+      },
+      "market_greeks_first_call_s": 3.569812500034459,
+      "market_greeks_memo": {
+        "median": 1.1486403750022873,
+        "iqr": 0.0026496459904592484,
+        "n": 3,
+        "min": 1.1436877920059487,
+        "max": 1.1489870839868672
+      },
+      "memo_entries": 5
+    }
+  },
+  "provenance": {
+    "commit": "594b79b",
+    "timestamp_utc": "2026-11-13T18:57:08.505568+00:00",
+    "python": "3.11.9",
+    "numpy": "2.4.2",
+    "scipy": "1.17.1",
+    "matplotlib": "3.10.8",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "section": "cost2memo"
+  }
+}
